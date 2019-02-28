@@ -74,6 +74,7 @@ public class LoaclSqlTest {
                     row.setField(i, TypeParse.typeParse(split[i],rowType[i]));
                 }
                 return row;
+
             }
         })
                 //返回Row封装数据的名称与类型,以便下一个算子能识别此类型
