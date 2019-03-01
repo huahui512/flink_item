@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.contrib.streaming.state.RocksDBStateBackend;
 import org.apache.flink.runtime.state.StateBackend;
 import org.apache.flink.streaming.api.CheckpointingMode;
@@ -19,30 +20,42 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer010;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * @author wangtaiyang
+ */
 public class GrampusOrderETL {
     public static void main(String[] args) throws Exception {
+        final ParameterTool params = ParameterTool.fromArgs(args);
+        String bootstrapServers = params.get("bootstrapServers", "localhost:9092");
+        String targetBootstrapServers = params.get("target-bootstrapServers", "localhost:9092");
+        String groupId = params.get("groupId", "test");
+        //earliest
+        String offsetReset = params.get("offsetReset", "latest");
+        String topic = params.get("topic");
+        String targetTopic = params.get("target-topic");
+        String checkPointPath = params.get("checkPointPath");
+
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         Properties properties = new Properties();
-        properties.setProperty("bootstrap.servers", "localhost:9092");
-        properties.setProperty("group.id", "test9");
-//        properties.setProperty("auto.offset.reset", "earliest");
-        properties.setProperty("auto.offset.reset", "latest");
-        FlinkKafkaConsumer010<String> test = new FlinkKafkaConsumer010<>("grampus_order", new SimpleStringSchema(), properties);
+        properties.setProperty("bootstrap.servers", bootstrapServers);
+        properties.setProperty("group.id", groupId);
+        properties.setProperty("auto.offset.reset", offsetReset);
+        FlinkKafkaConsumer010<String> test = new FlinkKafkaConsumer010<>(topic, new SimpleStringSchema(), properties);
         DataStreamSource<String> kafkaSource = env.addSource(test);
 
         CheckpointConfig cpConfig = env.getCheckpointConfig();
         env.enableCheckpointing(5000);
         cpConfig.setCheckpointingMode(CheckpointingMode.AT_LEAST_ONCE);
         cpConfig.enableExternalizedCheckpoints(CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
-        StateBackend rocksDBStateBackend = new RocksDBStateBackend("hdfs:///checkpoints-data/");
+        StateBackend rocksDBStateBackend = new RocksDBStateBackend(checkPointPath);
         env.setStateBackend(rocksDBStateBackend);
 
         //设置task失败重试次数和重试间隔
         env.setRestartStrategy(RestartStrategies.fixedDelayRestart(3, 2000));
 
         FlinkKafkaProducer010<String> myProducer = new FlinkKafkaProducer010<String>(
-                "localhost:9092",
-                "grampus_order_etl",
+                targetBootstrapServers,
+                targetTopic,
                 new SimpleStringSchema());
         //\u0000
         SingleOutputStreamOperator<String> filter = kafkaSource.filter(x -> {
@@ -50,11 +63,11 @@ public class GrampusOrderETL {
             String jsonData = arr[1];
             JSONObject dataJo = JSON.parseObject(jsonData);
             JSONArray columnsJo = dataJo.getJSONArray("columns");
-            AtomicBoolean flag= new AtomicBoolean(true);
+            AtomicBoolean flag = new AtomicBoolean(true);
             columnsJo.forEach((Object jo) -> {
                 JSONObject childJo = JSON.parseObject(jo.toString());
-                if("order_status".equals(childJo.getString("name"))){
-                    if(childJo.getInteger("value")!=1){
+                if ("order_status".equals(childJo.getString("name"))) {
+                    if (childJo.getInteger("value") != 1) {
                         flag.set(false);
                     }
                 }
