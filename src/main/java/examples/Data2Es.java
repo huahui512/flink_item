@@ -1,25 +1,40 @@
 package examples;
 
 
+import com.missfresh.output.EsOutPut;
+import com.missfresh.util.GetInfo;
+import com.missfresh.util.MyRowInfo;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RuntimeContext;
+import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.api.common.time.Time;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple5;
+import org.apache.flink.api.java.typeutils.RowTypeInfo;
+import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchSinkFunction;
 import org.apache.flink.streaming.connectors.elasticsearch.RequestIndexer;
 import org.apache.flink.streaming.connectors.elasticsearch6.ElasticsearchSink;
 
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer010;
+import org.apache.flink.table.api.Table;
+import org.apache.flink.table.api.TableEnvironment;
+import org.apache.flink.table.api.java.StreamTableEnvironment;
+import org.apache.flink.types.Row;
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.Requests;
 
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author wangzhihua
@@ -31,82 +46,95 @@ public class Data2Es {
         String zkBrokers = null;
         String topic = null;
         String groupId = null;
-        if (args.length == 4) {
+        String sqlInfo = null;
+        String tableName = null;
+        String offsetType = null;
+        String interval = null;
+        //判断参数输入是否完整
+        if (args.length == 8) {
             kafkaBrokers = args[0];
             zkBrokers = args[1];
             topic = args[2];
             groupId = args[3];
+            sqlInfo = args[4];
+            tableName = args[5];
+            offsetType = args[6];
+            interval = args[7];
         } else {
             System.exit(1);
         }
-        System.out.println("===============》 flink任务开始  ==============》");
+        System.out.println("===============》  flink任务开始  =================》");
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         //设置kafka连接参数
         Properties properties = new Properties();
         properties.setProperty("bootstrap.servers", kafkaBrokers);
         properties.setProperty("zookeeper.connect", zkBrokers);
         properties.setProperty("group.id", groupId);
+        properties.setProperty("auto.offset.reset", offsetType);
         //设置时间类型
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         //设置检查点时间间隔
-        env.enableCheckpointing(5000);
+        env.enableCheckpointing(Long.parseLong(interval));
+        //设置任务重启的次数和间隔
+        env.setRestartStrategy(RestartStrategies.fixedDelayRestart(3, Time.of(5, TimeUnit.SECONDS)));
         //设置检查点模式
-        //env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
+        env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
+        //获取表对象
+        StreamTableEnvironment tableEnv = TableEnvironment.getTableEnvironment(env);
         System.out.println("===============》 开始读取kafka中的数据  ==============》");
         //创建kafak消费者，获取kafak中的数据
         FlinkKafkaConsumer010<String> kafkaConsumer010 = new FlinkKafkaConsumer010<>(topic, new SimpleStringSchema(), properties);
-        kafkaConsumer010.setStartFromEarliest();
-        DataStreamSource<String> kafkaData = env.addSource(kafkaConsumer010);
-        kafkaData.print();
-        //解析kafka数据流 转化成固定格式数据流
-        DataStream<Tuple5<Long, Long, Long, String, Long>> userData = kafkaData.map(new MapFunction<String, Tuple5<Long, Long, Long, String, Long>>() {
+        SingleOutputStreamOperator<String> kafkaData = env.addSource(kafkaConsumer010).uid("source1");
+        //获取表的字段名和类型
+        String typeInfo = GetInfo.getTypeInfo();
+        //设置Row的字段名称和类型
+        RowTypeInfo rowTypeInfo = MyRowInfo.getRowTypeInfo(typeInfo);
+        //获取字段对应的数据类型
+        TypeInformation[] typeInformations = rowTypeInfo.getFieldTypes();
+        //使用Row封装数据类型
+        SingleOutputStreamOperator<Row> userData = kafkaData.map(new MapFunction<String, Row>() {
+            //通过循环 获取每一个字段的值
             @Override
-            public Tuple5<Long, Long, Long, String, Long> map(String s) throws Exception {
-                String[] split = s.split(",");
-                    long userID = Long.parseLong(split[0]);
-                    long itemId = Long.parseLong(split[1]);
-                    long categoryId = Long.parseLong(split[2]);
-                    String behavior = split[3];
-                    long timestamp = Long.parseLong(split[4]);
-                    System.out.println("&&&&"+behavior);
-                    Tuple5<Long, Long, Long, String, Long> userInfo = new Tuple5<>(userID, itemId, categoryId, behavior, timestamp);
-                    return userInfo;
-            }
-        });
-
-        List<HttpHost> httpHosts = new ArrayList<>();
-        httpHosts.add(new HttpHost("10.2.40.15", 9200, "http"));
-        httpHosts.add(new HttpHost("10.2.40.10", 9200, "http"));
-        httpHosts.add(new HttpHost("10.2.40.14", 9200, "http"));
-       // use a ElasticsearchSink.Builder to create an ElasticsearchSink
-        ElasticsearchSink.Builder<Tuple5<Long, Long, Long, String, Long>> esSinkBuilder = new ElasticsearchSink.Builder<>(
-                httpHosts,
-                new ElasticsearchSinkFunction<Tuple5<Long, Long, Long, String, Long>>() {
-                    public IndexRequest createIndexRequest(Tuple5<Long, Long, Long, String, Long> element) {
-                        Map<String, String> json = new HashMap<>();
-                        json.put("userid", element.f0.toString());
-                        json.put("itemid", element.f1.toString());
-                        json.put("categoryid", element.f2.toString());
-                        json.put("behavior", element.f3);
-                        json.put("timestamp", element.f4.toString());
-
-                        return Requests.indexRequest()
-                                .index("user_info")
-                                .type("flink_test")
-                                .source(json);
-                    }
-                    @Override
-                    public void process(Tuple5<Long, Long, Long, String, Long> element, RuntimeContext ctx, RequestIndexer indexer) {
-                        indexer.add(createIndexRequest(element));
+            public Row map(String s) throws Exception {
+                String[] split = s.split("\u0000");
+                Row row = new Row(split.length);
+                for (int i = 0; i < split.length; i++) {
+                    String typeStr = typeInformations[i].toString();
+                    if ("Integer".equals(typeStr)) {
+                        row.setField(i, Integer.valueOf(split[i]));
+                    } else if ("Long".equals(typeStr)) {
+                        row.setField(i, Long.parseLong(split[i]));
+                    } else if ("Double".equals(typeStr)) {
+                        row.setField(i, Double.parseDouble(split[i]));
+                    } else if ("Float".equals(typeStr)) {
+                        row.setField(i, Float.parseFloat(split[i]));
+                    } else {
+                        row.setField(i, String.valueOf(split[i]));
                     }
                 }
-        );
+                return row;
 
-        //必须设置flush参数
-        esSinkBuilder.setBulkFlushMaxActions(1);
-
-        userData.addSink(esSinkBuilder.build());
-
+            }
+        }).uid("map1")
+                //返回Row封装数据的名称与类型,以便下一个算子能识别此类型
+                .returns(rowTypeInfo).uid("return1");
+        //实时流转化成表
+        Table table = tableEnv.fromDataStream(userData);
+        //把实时流注册成表
+        tableEnv.registerDataStream(tableName, userData);
+        //进行sql查询生成表对象
+        Table table2 = tableEnv.sqlQuery(sqlInfo);
+        DataStream<Tuple2<Boolean, Row>> tuple2DataStream = tableEnv.toRetractStream(table2, Row.class);
+        SingleOutputStreamOperator<Row> outputStream = tuple2DataStream.map(new MapFunction<Tuple2<Boolean, Row>, Row>() {
+            @Override
+            public Row map(Tuple2<Boolean, Row> value) throws Exception {
+                Row row1 = value.f1;
+                return row1;
+            }
+        }).uid("map2");
+        //数据写入es
+        outputStream.addSink(new EsOutPut(sqlInfo)).uid("sink1");
+        //设置jobName
         env.execute("data2es");
     }
 }

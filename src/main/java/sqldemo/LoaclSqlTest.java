@@ -1,9 +1,11 @@
 package sqldemo;
 
+import com.missfresh.output.EsOutPut;
 import com.missfresh.util.GetInfo;
 import com.missfresh.util.MyRowInfo;
-import com.missfresh.util.TypeParse;
+import com.missfresh.util.SqlParse;
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -14,24 +16,27 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer010;
-import org.apache.flink.streaming.connectors.redis.RedisSink;
-import org.apache.flink.streaming.connectors.redis.common.config.FlinkJedisPoolConfig;
+import org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchSinkFunction;
+import org.apache.flink.streaming.connectors.elasticsearch.RequestIndexer;
+import org.apache.flink.streaming.connectors.elasticsearch6.ElasticsearchSink;
 import org.apache.flink.streaming.connectors.redis.common.mapper.RedisCommand;
 import org.apache.flink.streaming.connectors.redis.common.mapper.RedisCommandDescription;
 import org.apache.flink.streaming.connectors.redis.common.mapper.RedisMapper;
-import org.apache.flink.streaming.util.serialization.SimpleStringSchema;
 import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.TableEnvironment;
-import org.apache.flink.table.api.Types;
 import org.apache.flink.table.api.java.StreamTableEnvironment;
 import org.apache.flink.types.Row;
+import org.apache.http.HttpHost;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.client.Requests;
+import org.elasticsearch.common.xcontent.XContentFactory;
 
 
-import java.lang.reflect.Field;
-import java.util.HashMap;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -61,8 +66,8 @@ public class LoaclSqlTest {
         //设置Row的字段名称和类型
         RowTypeInfo rowTypeInfo = MyRowInfo.getRowTypeInfo(typeInfo);
         DataStreamSource<String> streamSource = env.readTextFile("/Users/apple/Downloads/userData.txt");
-        TypeInformation[] rowType = MyRowInfo.getRowType(typeInfo);
-
+        //TypeInformation[] rowType = MyRowInfo.getRowType(typeInfo);
+        TypeInformation[] typeInformations = rowTypeInfo.getFieldTypes();
         //使用Row封装数据类型
         SingleOutputStreamOperator<Row> userData = streamSource.map(new MapFunction<String, Row>() {
             //通过循环 获取每一个字段的值
@@ -71,7 +76,18 @@ public class LoaclSqlTest {
                 String[] split = s.split(",");
                 Row row = new Row(split.length);
                 for (int i = 0; i < split.length; i++) {
-                    row.setField(i, TypeParse.typeParse(split[i],rowType[i]));
+                    String typeStr = typeInformations[i].toString();
+                    if ("Integer".equals(typeStr)) {
+                        row.setField(i, Integer.valueOf(split[i]));
+                    } else if ("Long".equals(typeStr)) {
+                        row.setField(i, Long.parseLong(split[i]));
+                    } else if ("Double".equals(typeStr)) {
+                        row.setField(i, Double.parseDouble(split[i]));
+                    } else if ("Float".equals(typeStr)) {
+                        row.setField(i, Float.parseFloat(split[i]));
+                    } else {
+                        row.setField(i, String.valueOf(split[i]));
+                    }
                 }
                 return row;
 
@@ -87,43 +103,18 @@ public class LoaclSqlTest {
         Table table2 = tableEnv.sqlQuery("select count(distinct userId) as uv ,behavior from userTable group by behavior");
 
         DataStream<Tuple2<Boolean, Row>> tuple2DataStream = tableEnv.toRetractStream(table2, Row.class);
-        //设置Row的字段名称和类型
-        RowTypeInfo rowTypeInfo1 = MyRowInfo.getRowTypeInfo("uv&String,behavior&String");
 
         SingleOutputStreamOperator<Row> outputStream = tuple2DataStream.map(new MapFunction<Tuple2<Boolean, Row>, Row>() {
             @Override
             public Row map(Tuple2<Boolean, Row> value) throws Exception {
                 Row row1 = value.f1;
-                String s = row1.toString();
-                String[] split = s.split(",");
-                Row row = new Row(split.length);
-                for (int i = 0; i < split.length; i++) {
-                    row.setField(i, split[i]);
-                }
-                return row;
-            }
-        }).returns(rowTypeInfo1);
-
-        outputStream.map(new MapFunction<Row, Object>() {
-
-            @Override
-            public Object map(Row value) throws Exception {
-               /* Class<? extends Row> aClass = value.getClass();
-
-                Field behavior = aClass.getField("behavior");
-                System.out.println(behavior);*/
-                System.out.println(value.getField(0));
-                System.out.println(value.getField(1));
-
-                System.out.println(value.toString());
-                return "hhh";
+                return row1;
             }
         });
-        //tableEnv.toRetractStream(table2, Sql_data2redis.info.class);
-        //实例化Flink和Redis关联类FlinkJedisPoolConfig，设置Redis端口
-      // FlinkJedisPoolConfig conf = new FlinkJedisPoolConfig.Builder().setHost("10.2.40.17").setPassword("518189aA").build();
-        //实例化RedisSink，并通过flink的addSink的方式将flink计算的结果插入到redis
-      //  outputStream.addSink(new RedisSink<Row>(conf, new LoaclSqlTest.RedisExampleMapper()));
+
+        outputStream.addSink(new EsOutPut(""));
+
+
 
         System.out.println("===============》 flink任务结束  ==============》");
         env.execute("sql_dara2redis");

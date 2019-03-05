@@ -5,6 +5,8 @@ import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.streaming.connectors.redis.RedisSink;
+import org.apache.flink.streaming.connectors.redis.common.config.FlinkJedisPoolConfig;
 import org.apache.flink.table.api.Types;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.typeutils.RowTypeInfo;
@@ -80,20 +82,17 @@ public class LoaclSqlTest {
         DataStream<Tuple2<Boolean, Row>> tuple2DataStream = tableEnv.toRetractStream(table, Row.class);
 
 
-        tuple2DataStream.map(new MapFunction<Tuple2<Boolean, Row>, String>() {
+        SingleOutputStreamOperator<Row> outputStream = tuple2DataStream.map(new MapFunction<Tuple2<Boolean, Row>, Row>() {
             @Override
-            public String map(Tuple2<Boolean, Row> value) throws Exception {
-                System.out.println(value.f0);
-                System.out.println(value.f1);
-                System.out.println(value.toString());
-                return null;
+            public Row map(Tuple2<Boolean, Row> value) throws Exception {
+
+                return value.f1;
             }
         });
-        //tableEnv.toRetractStream(table, Sql_data2redis.info.class);
         //实例化Flink和Redis关联类FlinkJedisPoolConfig，设置Redis端口
-        // FlinkJedisPoolConfig conf = new FlinkJedisPoolConfig.Builder().setHost("10.2.40.17").setPassword("518189aA").build();
+         FlinkJedisPoolConfig conf = new FlinkJedisPoolConfig.Builder().setHost("10.2.40.17").setPassword("518189aA").build();
         //实例化RedisSink，并通过flink的addSink的方式将flink计算的结果插入到redis
-        //  outputStream.addSink(new RedisSink<Row>(conf, new LoaclSqlTest.RedisExampleMapper()));
+         outputStream.addSink(new RedisSink<Row>(conf, new LoaclSqlTest.RedisExampleMapper()));
 
         env.execute("sql_dara2redis");
     }

@@ -27,17 +27,4 @@ public class MyRowInfo {
       return  rowTypeInfo;
     }
 
-    public static TypeInformation[] getRowType(String infoStr){
-        //解析字符串，通过循环把字段名和字段类型存放到对应的数组中
-        String[] split1 = infoStr.split(",");
-        TypeInformation[] types=new TypeInformation[split1.length];
-        for (int i=0;i<split1.length;i++) {
-            String typeInfo = split1[i].split("&")[1];
-            types[i]=TypeInfo.getType(typeInfo);
-        }
-
-
-        return  types;
-    }
-
 }
