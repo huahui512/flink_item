@@ -35,6 +35,7 @@ public class Kafka2Kafka {
         } else {
             System.exit(1);
         }
+
         System.out.println("===============》 flink任务开始  ==============》");
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         //设置kafka连接参数
