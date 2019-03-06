@@ -58,7 +58,7 @@ public class Kafka2Kafka {
         DataStream<String> userData = kafkaData.map(new MapFunction<String, String>() {
             @Override
             public String map(String s)  {
-                String s1 = null;
+                String s1 ="";
                 try {
                     String[] split = s.split(",");
                     long userID = Long.parseLong(split[0]);
