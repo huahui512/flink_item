@@ -43,6 +43,7 @@ public class Kafka2Kafka {
         properties.setProperty("bootstrap.servers", kafkaBrokers);
         properties.setProperty("zookeeper.connect", zkBrokers);
         properties.setProperty("group.id", groupId);
+
         //设置时间类型
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         //设置检查点时间间隔
