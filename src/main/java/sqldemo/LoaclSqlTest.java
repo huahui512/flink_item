@@ -3,6 +3,7 @@ package sqldemo;
 import com.missfresh.output.EsOutPut;
 import com.missfresh.util.GetInfo;
 import com.missfresh.util.MyRowInfo;
+import com.missfresh.util.Parameter;
 import com.missfresh.util.SqlParse;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RuntimeContext;
@@ -45,6 +46,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class LoaclSqlTest {
     public static void main(String[] args) throws Exception {
+        Map<String,String> parMap = Parameter.getParm(args);
         System.out.println("===============》 flink任务开始  ==============》");
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         //获取表对象
@@ -65,7 +67,7 @@ public class LoaclSqlTest {
         String typeInfo = GetInfo.getTypeInfo();
         //设置Row的字段名称和类型
         RowTypeInfo rowTypeInfo = MyRowInfo.getRowTypeInfo(typeInfo);
-        DataStreamSource<String> streamSource = env.readTextFile("/Users/apple/Downloads/userData.txt");
+        DataStreamSource<String> streamSource = env.readTextFile(parMap.get("filePath"));
         //TypeInformation[] rowType = MyRowInfo.getRowType(typeInfo);
         TypeInformation[] typeInformations = rowTypeInfo.getFieldTypes();
         //使用Row封装数据类型
@@ -112,7 +114,7 @@ public class LoaclSqlTest {
             }
         });
 
-        outputStream.addSink(new EsOutPut(""));
+        outputStream.addSink(new EsOutPut("select count(distinct userId) as uv ,behavior from userTable group by behavior"));
 
 
 
