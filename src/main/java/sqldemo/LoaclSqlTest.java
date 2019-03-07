@@ -67,7 +67,7 @@ public class LoaclSqlTest {
         String typeInfo = GetInfo.getTypeInfo();
         //设置Row的字段名称和类型
         RowTypeInfo rowTypeInfo = MyRowInfo.getRowTypeInfo(typeInfo);
-        DataStreamSource<String> streamSource = env.readTextFile(parMap.get("filePath"));
+        DataStreamSource<String> streamSource = env.readTextFile("/Users/apple/Downloads/userData.txt");
         //TypeInformation[] rowType = MyRowInfo.getRowType(typeInfo);
         TypeInformation[] typeInformations = rowTypeInfo.getFieldTypes();
         //使用Row封装数据类型
@@ -75,21 +75,26 @@ public class LoaclSqlTest {
             //通过循环 获取每一个字段的值
             @Override
             public Row map(String s) throws Exception {
-                String[] split = s.split(",");
-                Row row = new Row(split.length);
-                for (int i = 0; i < split.length; i++) {
-                    String typeStr = typeInformations[i].toString();
-                    if ("Integer".equals(typeStr)) {
-                        row.setField(i, Integer.valueOf(split[i]));
-                    } else if ("Long".equals(typeStr)) {
-                        row.setField(i, Long.parseLong(split[i]));
-                    } else if ("Double".equals(typeStr)) {
-                        row.setField(i, Double.parseDouble(split[i]));
-                    } else if ("Float".equals(typeStr)) {
-                        row.setField(i, Float.parseFloat(split[i]));
-                    } else {
-                        row.setField(i, String.valueOf(split[i]));
+                Row row = null;
+                try {
+                    String[] split = s.split(",");
+                    row = new Row(split.length);
+                    for (int i = 0; i < split.length; i++) {
+                        String typeStr = typeInformations[i].toString();
+                        if ("Integer".equals(typeStr)) {
+                            row.setField(i, Integer.valueOf(split[i]));
+                        } else if ("Long".equals(typeStr)) {
+                            row.setField(i, Long.parseLong(split[i]));
+                        } else if ("Double".equals(typeStr)) {
+                            row.setField(i, Double.parseDouble(split[i]));
+                        } else if ("Float".equals(typeStr)) {
+                            row.setField(i, Float.parseFloat(split[i]));
+                        } else {
+                            row.setField(i, String.valueOf(split[i]));
+                        }
                     }
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
                 }
                 return row;
 
@@ -110,11 +115,12 @@ public class LoaclSqlTest {
             @Override
             public Row map(Tuple2<Boolean, Row> value) throws Exception {
                 Row row1 = value.f1;
+                System.out.println(row1.toString());
                 return row1;
             }
         });
 
-        outputStream.addSink(new EsOutPut("select count(distinct userId) as uv ,behavior from userTable group by behavior"));
+       // outputStream.addSink(new EsOutPut("select count(distinct userId) as uv ,behavior from userTable group by behavior"));
 
 
 
