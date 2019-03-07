@@ -80,13 +80,13 @@ public class Kafka2Kafka {
                 return  s1;
             }
         });
-       /* kafkaData.filter(new FilterFunction<String>() {
+        kafkaData.filter(new FilterFunction<String>() {
             @Override
             public boolean filter(String value) throws Exception {
                 System.out.println(value);
                 return true;
             }
-        });*/
+        });
         userData.print();
 
         FlinkKafkaProducer010<String> myProducer = new FlinkKafkaProducer010<String>(
