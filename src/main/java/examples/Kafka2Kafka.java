@@ -75,6 +75,7 @@ public class Kafka2Kafka {
                     map.put("behavior", behavior);
                     map.put("timestamp", timestamp);
                     s1 = JSON.toJSONString(map);
+                    System.out.println("数据"+map.toString());
                 } catch (NumberFormatException e) {
                     e.printStackTrace();
                 }
