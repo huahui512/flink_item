@@ -57,7 +57,8 @@ public class HotItem {
             }
         });
 
-        SingleOutputStreamOperator<Tuple5<Long, Long, Long, String, Long>> data3 = data2.assignTimestampsAndWatermarks(new AscendingTimestampExtractor<Tuple5<Long, Long, Long, String, Long>>() {
+        SingleOutputStreamOperator<Tuple5<Long, Long, Long, String, Long>> data3 = data2
+                .assignTimestampsAndWatermarks(new AscendingTimestampExtractor<Tuple5<Long, Long, Long, String, Long>>() {
             @Override
             public long extractAscendingTimestamp(Tuple5<Long, Long, Long, String, Long> Tuple5) {
                 return Tuple5.f4 * 1000;

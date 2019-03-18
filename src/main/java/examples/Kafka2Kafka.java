@@ -10,17 +10,24 @@ import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer010;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer010;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
 
 /**
  * @author wangzhihua
  * @date 2019-03-06 16:49
  */
 public class Kafka2Kafka {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Kafka2Kafka.class);
+
     public static void main(String[] args) throws Exception {
+        System.setProperty("HADOOP_USER_NAME","www");
+
         String kafkaBrokers = null;
         String zkBrokers = null;
         String topic = null;
@@ -82,6 +89,7 @@ public class Kafka2Kafka {
                 return  s1;
             }
         });
+        userData.print();
         kafkaData.filter(new FilterFunction<String>() {
             @Override
             public boolean filter(String value) throws Exception {
