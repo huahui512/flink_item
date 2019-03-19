@@ -27,7 +27,6 @@ public class Kafka2Kafka {
 
     public static void main(String[] args) throws Exception {
         System.setProperty("HADOOP_USER_NAME","www");
-
         String kafkaBrokers = null;
         String zkBrokers = null;
         String topic = null;
@@ -51,6 +50,7 @@ public class Kafka2Kafka {
         properties.setProperty("zookeeper.connect", zkBrokers);
         properties.setProperty("flink.partition-discovery.interval-millis", "5000");
         properties.setProperty("group.id", groupId);
+
 
         //设置时间类型
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
