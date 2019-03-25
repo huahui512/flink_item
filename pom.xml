@@ -67,6 +67,13 @@
         </dependency>
 
 
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>2.9.0</version>
+        </dependency>
+
+
         <!-- Add connector dependencies here. They must be in the default scope (compile). -->
 
         <!-- Example:

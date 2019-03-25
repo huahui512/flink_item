@@ -26,7 +26,7 @@ public class Kafka2Kafka {
     private static final Logger LOGGER = LoggerFactory.getLogger(Kafka2Kafka.class);
 
     public static void main(String[] args) throws Exception {
-        System.setProperty("HADOOP_USER_NAME","www");
+      //  System.setProperty("HADOOP_USER_NAME","www");
         String kafkaBrokers = null;
         String zkBrokers = null;
         String topic = null;
@@ -61,7 +61,8 @@ public class Kafka2Kafka {
         System.out.println("===============》 开始读取kafka中的数据  ==============》");
         //创建kafak消费者，获取kafak中的数据
         FlinkKafkaConsumer010<String> kafkaConsumer010 = new FlinkKafkaConsumer010<>(topic, new SimpleStringSchema(), properties);
-        kafkaConsumer010.setStartFromEarliest();
+
+        kafkaConsumer010.setStartFromTimestamp(1553519700L);
         DataStreamSource<String> kafkaData = env.addSource(kafkaConsumer010);
         //解析kafka数据流 转化成固定格式数据流
         DataStream<String> userData = kafkaData.map(new MapFunction<String, String>() {
