@@ -62,7 +62,7 @@ public class Kafka2Kafka {
         //创建kafak消费者，获取kafak中的数据
         FlinkKafkaConsumer010<String> kafkaConsumer010 = new FlinkKafkaConsumer010<>(topic, new SimpleStringSchema(), properties);
 
-        kafkaConsumer010.setStartFromTimestamp(1553519700000L);
+        kafkaConsumer010.setStartFromTimestamp(1553566597000L);
         DataStreamSource<String> kafkaData = env.addSource(kafkaConsumer010);
         //解析kafka数据流 转化成固定格式数据流
         DataStream<String> userData = kafkaData.map(new MapFunction<String, String>() {
