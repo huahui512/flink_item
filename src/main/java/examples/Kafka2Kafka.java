@@ -3,9 +3,14 @@ package examples;
 import com.alibaba.fastjson.JSON;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.operators.DataSource;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.metrics.*;
+import org.apache.flink.metrics.reporter.MetricReporter;
+import org.apache.flink.metrics.reporter.Scheduled;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
@@ -17,6 +22,7 @@ import org.slf4j.Logger;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -110,5 +116,97 @@ public class Kafka2Kafka {
         userData.addSink(myProducer);//参数分别是：写入topic，序列化器，kafka配置惨
         env.execute("data2es");
     }
+
+
+    public static class MyMapper extends RichMapFunction<String,String>{
+        private transient Counter counter;
+
+        @Override
+        public String map(String value) throws Exception {
+            this.counter.inc();
+            return value;
+        }
+
+        @Override
+        public void open(Configuration parameters) throws Exception {
+            //super.open(parameters);
+            this.counter=getRuntimeContext()
+                    .getMetricGroup()
+                    .counter("MyCounter");
+        }
+
+
+        public static class FalconReporter implements MetricReporter, CharacterFilter, Scheduled {
+
+            private static final Logger LOG =LoggerFactory.getLogger(FalconReporter.class);
+
+            private final Map<Gauge<?>, MetricTag> gauges = new ConcurrentHashMap<>();
+            private final Map<Counter, MetricTag> counters = new ConcurrentHashMap<>();
+            private final Map<Histogram, MetricTag> histograms = new ConcurrentHashMap<>();
+            private final Map<Meter, MetricTag> meters = new ConcurrentHashMap<>();
+
+            @Override
+            //用于对scope进行过滤.
+            public String filterCharacters(String s) {
+                return s;
+            }
+
+            @Override
+            public void open(MetricConfig metricConfig) {
+
+            }
+
+            @Override
+            public void close() {
+            }
+
+            @Override
+            public void notifyOfAddedMetric(Metric metric, String s, MetricGroup metricGroup) {
+
+            }
+
+            @Override
+            public void notifyOfRemovedMetric(Metric metric, String s, MetricGroup metricGroup) {
+            }
+
+            @Override
+            public void report() {
+
+            }
+        }
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
