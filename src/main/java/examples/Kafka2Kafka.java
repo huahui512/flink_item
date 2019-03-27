@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.api.java.ExecutionEnvironment;
+import org.apache.flink.api.java.operators.DataSource;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
@@ -12,7 +14,6 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer010;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer010;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -44,13 +45,15 @@ public class Kafka2Kafka {
 
         System.out.println("===============》 flink任务开始  ==============》");
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+        ExecutionEnvironment env2 = ExecutionEnvironment.getExecutionEnvironment();
+        DataSource<String> stringDataSource = env2.fromElements("");
         //设置kafka连接参数
         Properties properties = new Properties();
         properties.setProperty("bootstrap.servers", kafkaBrokers);
         properties.setProperty("zookeeper.connect", zkBrokers);
         properties.setProperty("flink.partition-discovery.interval-millis", "5000");
         properties.setProperty("group.id", groupId);
-
 
         //设置时间类型
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
@@ -104,8 +107,6 @@ public class Kafka2Kafka {
                 kafkaBrokers,            // broker list
                 outTopic,                  // target topic
                 new SimpleStringSchema());   // serialization schema
-
-
         userData.addSink(myProducer);//参数分别是：写入topic，序列化器，kafka配置惨
         env.execute("data2es");
     }
