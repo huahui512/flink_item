@@ -45,12 +45,12 @@ public class DoubleJoin {
         properties.setProperty("group.id", "jj");
         FlinkKafkaConsumer010<String> kafkaConsumer1 = new FlinkKafkaConsumer010<>("join1", new SimpleStringSchema(), properties);
 
-        //设置kafka连接参数
+       /* //设置kafka连接参数
         Properties properties1 = new Properties();
         properties.setProperty("bootstrap.servers", "10.2.40.10:9092,10.2.40.15:9092,10.2.40.14:9092");
        // properties.setProperty("flink.partition-discovery.interval-millis", "5000");
-        properties.setProperty("group.id", "iii");
-        FlinkKafkaConsumer010<String> kafkaConsumer2 = new FlinkKafkaConsumer010<>("join2", new SimpleStringSchema(), properties1);
+        properties.setProperty("group.id", "iii");*/
+        FlinkKafkaConsumer010<String> kafkaConsumer2 = new FlinkKafkaConsumer010<>("join2", new SimpleStringSchema(), properties);
 
         DataStreamSource<String> source1 = env.addSource(kafkaConsumer1);
         DataStreamSource<String> source2 = env.addSource(kafkaConsumer2);
@@ -180,7 +180,7 @@ public class DoubleJoin {
                     ));
                     System.out.println("join"+first.toString());
                     }
-                }).printToErr();
+                }).print();
 
         try {
             env.execute("ddcddd");
