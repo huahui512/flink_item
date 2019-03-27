@@ -74,6 +74,8 @@ public class DoubleJoin {
         FlinkKafkaConsumer010<String> kafkaConsumer1 = new FlinkKafkaConsumer010<>(topic1, new SimpleStringSchema(), properties);
         FlinkKafkaConsumer010<String> kafkaConsumer2 = new FlinkKafkaConsumer010<>(topic2, new SimpleStringSchema(), properties);
 
+        kafkaConsumer1.setStartFromLatest();
+        kafkaConsumer2.setStartFromLatest();
         DataStreamSource<String> source1 = env.addSource(kafkaConsumer1);
         DataStreamSource<String> source2 = env.addSource(kafkaConsumer2);
         /*DataStreamSource<String> source1 = env.readTextFile("/Users/apple/Downloads/1.txt");
