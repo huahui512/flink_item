@@ -78,7 +78,7 @@ public class DoubleJoin {
         DataStreamSource<String> source2 = env.addSource(kafkaConsumer2);
         /*DataStreamSource<String> source1 = env.readTextFile("/Users/apple/Downloads/1.txt");
         DataStreamSource<String> source2 = env.readTextFile("/Users/apple/Downloads/2.txt");*/
-        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+        env.setStreamTimeCharacteristic(TimeCharacteristic.ProcessingTime);
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         /**
          * 数据流1
