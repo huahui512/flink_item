@@ -36,48 +36,23 @@ import static sun.misc.Version.print;
 public class DoubleJoin {
     public static void main(String[] args) {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        String kafkaBrokers = null;
-        String zkBrokers = null;
-        String topic1 = null;
-        String groupId = null;
-        String topic2 = null;
-        if (args.length == 5) {
-            kafkaBrokers = args[0];
-            zkBrokers = args[1];
-            topic1 = args[2];
-            groupId = args[3];
-            topic2 = args[4];
-        } else {
-            System.exit(1);
-        }
 
 
         //设置kafka连接参数
         Properties properties = new Properties();
-        properties.setProperty("bootstrap.servers", kafkaBrokers);
-        properties.setProperty("group.id", groupId);
-        /*//设置kafka连接参数
-        Properties properties = new Properties();
         properties.setProperty("bootstrap.servers", "10.2.40.10:9092,10.2.40.15:9092,10.2.40.14:9092");
         //properties.setProperty("flink.partition-discovery.interval-millis", "5000");
         properties.setProperty("group.id", "jj");
+        FlinkKafkaConsumer010<String> kafkaConsumer1 = new FlinkKafkaConsumer010<>("join1", new SimpleStringSchema(), properties);
 
 
-       *//* //设置kafka连接参数
-        Properties properties1 = new Properties();
-        properties.setProperty("bootstrap.servers", "10.2.40.10:9092,10.2.40.15:9092,10.2.40.14:9092");
-       // properties.setProperty("flink.partition-discovery.interval-millis", "5000");
-        properties.setProperty("group.id", "iii");*/
-        FlinkKafkaConsumer010<String> kafkaConsumer1 = new FlinkKafkaConsumer010<>(topic1, new SimpleStringSchema(), properties);
-        FlinkKafkaConsumer010<String> kafkaConsumer2 = new FlinkKafkaConsumer010<>(topic2, new SimpleStringSchema(), properties);
+        FlinkKafkaConsumer010<String> kafkaConsumer2 = new FlinkKafkaConsumer010<>("join2", new SimpleStringSchema(), properties);
 
-        kafkaConsumer1.setStartFromLatest();
-        kafkaConsumer2.setStartFromLatest();
         DataStreamSource<String> source1 = env.addSource(kafkaConsumer1);
         DataStreamSource<String> source2 = env.addSource(kafkaConsumer2);
         /*DataStreamSource<String> source1 = env.readTextFile("/Users/apple/Downloads/1.txt");
         DataStreamSource<String> source2 = env.readTextFile("/Users/apple/Downloads/2.txt");*/
-        env.setStreamTimeCharacteristic(TimeCharacteristic.ProcessingTime);
+        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         /**
          * 数据流1
@@ -201,7 +176,7 @@ public class DoubleJoin {
                     ));
                     System.out.println("join"+first.toString());
                     }
-                }).print();
+                }).printToErr();
 
         try {
             env.execute("ddcddd");

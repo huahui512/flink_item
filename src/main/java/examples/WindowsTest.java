@@ -27,25 +27,23 @@ import java.util.Properties;
 public class WindowsTest {
     public static void main(String[] args) {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-      /*  String kafkaBrokers = null;
-        String zkBrokers = null;
+        String kafkaBrokers = null;
         String topic1 = null;
         String groupId = null;
-        if (args.length == 5) {
+        if (args.length == 3) {
             kafkaBrokers = args[0];
-            zkBrokers = args[1];
-            topic1 = args[2];
-            groupId = args[3];
+            topic1 = args[1];
+            groupId = args[2];
         } else {
             System.exit(1);
-        }*/
+        }
 
 
         //设置kafka连接参数
         Properties properties = new Properties();
-        properties.setProperty("bootstrap.servers", "10.2.40.10:9092,10.2.40.15:9092,10.2.40.14:9092");
-        properties.setProperty("group.id", "tt");
-        FlinkKafkaConsumer010<String> kafkaConsumer1 = new FlinkKafkaConsumer010<>("windata", new SimpleStringSchema(), properties);
+        properties.setProperty("bootstrap.servers", kafkaBrokers);
+        properties.setProperty("group.id", groupId);
+        FlinkKafkaConsumer010<String> kafkaConsumer1 = new FlinkKafkaConsumer010<>(topic1, new SimpleStringSchema(), properties);
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
