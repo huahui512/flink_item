@@ -36,7 +36,6 @@ import static sun.misc.Version.print;
 public class DoubleJoin {
     public static void main(String[] args) {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-
         String kafkaBrokers = null;
         String zkBrokers = null;
         String topic1 = null;
