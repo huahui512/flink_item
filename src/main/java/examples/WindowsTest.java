@@ -13,9 +13,6 @@ import org.apache.flink.streaming.api.watermark.Watermark;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.api.windowing.triggers.CountTrigger;
-import org.apache.flink.streaming.api.windowing.triggers.Trigger;
-import org.apache.flink.streaming.api.windowing.triggers.TriggerResult;
-import org.apache.flink.streaming.api.windowing.windows.Window;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer010;
 import org.apache.flink.types.Row;
 
@@ -31,12 +28,18 @@ import java.util.Properties;
 public class WindowsTest {
     public static void main(String[] args) {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+        //设置kafka连接参数
+        Properties properties = new Properties();
+        properties.setProperty("bootstrap.servers","10.2.40.10:9092,10.2.40.15:9092,10.2.40.14:9092");
+        properties.setProperty("group.id", "tt");
+        FlinkKafkaConsumer010<String> kafkaConsumer1 = new FlinkKafkaConsumer010<>("windata", new SimpleStringSchema(), properties);
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
         System.out.println("============》 任务开始+++++");
-
-        DataStreamSource<String> source1 = env.socketTextStream("127.0.0.1", 7777);
+        kafkaConsumer1.setStartFromLatest();
+        DataStreamSource<String> source1 = env.addSource(kafkaConsumer1);
         SingleOutputStreamOperator<Row> stream1 = source1.map(new MapFunction<String, Row>() {
             @Override
             public Row map(String value) throws Exception {
@@ -93,37 +96,12 @@ public class WindowsTest {
                             return value1;
                         }
                     }
-                })
-                .print();
-
+                }).print();
         try {
             env.execute("test");
-
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-    }
-
-    public static class MyTrigger extends Trigger{
-        @Override
-        public TriggerResult onElement(Object element, long timestamp, Window window, TriggerContext ctx) throws Exception {
-            return null;
-        }
-
-        @Override
-        public TriggerResult onProcessingTime(long time, Window window, TriggerContext ctx) throws Exception {
-            return null;
-        }
-
-        @Override
-        public TriggerResult onEventTime(long time, Window window, TriggerContext ctx) throws Exception {
-            return null;
-        }
-
-        @Override
-        public void clear(Window window, TriggerContext ctx) throws Exception {
-
-        }
     }
 }

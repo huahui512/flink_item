@@ -227,7 +227,6 @@ public class DoubleJoin {
                 .apply(new CoGroupFunction<Row, Row, Row>() {
                     @Override
                     public void coGroup(Iterable<Row> first, Iterable<Row> second, Collector<Row> out) throws Exception {
-
                         System.out.println("流1"+first+"流2"+second);
                     first.forEach(t ->
                     second.forEach(x ->
