@@ -43,6 +43,8 @@ public class WindowsTest {
         Properties properties = new Properties();
         properties.setProperty("bootstrap.servers", kafkaBrokers);
         properties.setProperty("group.id", groupId);
+        properties.setProperty("auto.offset.reset", "earliest");
+
         FlinkKafkaConsumer010<String> kafkaConsumer1 = new FlinkKafkaConsumer010<>(topic1, new SimpleStringSchema(), properties);
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

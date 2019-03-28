@@ -43,6 +43,7 @@ public class DoubleJoin {
         properties.setProperty("bootstrap.servers", "10.2.40.10:9092,10.2.40.15:9092,10.2.40.14:9092");
         //properties.setProperty("flink.partition-discovery.interval-millis", "5000");
         properties.setProperty("group.id", "jj");
+        properties.setProperty("auto.offset.reset", "earliest");
         FlinkKafkaConsumer010<String> kafkaConsumer1 = new FlinkKafkaConsumer010<>("join1", new SimpleStringSchema(), properties);
 
 
