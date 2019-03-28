@@ -13,6 +13,7 @@ import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks;
 import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor;
+import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor;
 import org.apache.flink.streaming.api.watermark.Watermark;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
@@ -45,21 +46,15 @@ public class DoubleJoin {
         properties.setProperty("group.id", "jj");
         properties.setProperty("auto.offset.reset", "earliest");
         FlinkKafkaConsumer010<String> kafkaConsumer1 = new FlinkKafkaConsumer010<>("join1", new SimpleStringSchema(), properties);
-        kafkaConsumer1.setStartFromLatest();
+        kafkaConsumer1.setStartFromEarliest();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        kafkaConsumer1.assignTimestampsAndWatermarks(new AssignerWithPeriodicWatermarks<String>() {
+        kafkaConsumer1.assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<String>(Time.seconds(10000L)) {
             long  currentMaxTimestamp = 0L;
             long  maxOutOfOrderness = 10000L;
             Watermark watermark=null;
-            //最大允许的乱序时间是10s
-            @Nullable
+
             @Override
-            public Watermark getCurrentWatermark() {
-                watermark = new Watermark(currentMaxTimestamp - maxOutOfOrderness);
-                return watermark;
-            }
-            @Override
-            public long extractTimestamp(String element, long previousElementTimestamp) {
+            public long extractTimestamp(String element) {
                 String[] split = element.split(",");
                 String timeStamp = split[0];
                 String name = split[1];
@@ -77,22 +72,43 @@ public class DoubleJoin {
                 currentMaxTimestamp = Math.max(timeStamp1, currentMaxTimestamp);
                 return timeStamp1 ;
             }
-        });
-        FlinkKafkaConsumer010<String> kafkaConsumer2 = new FlinkKafkaConsumer010<>("join2", new SimpleStringSchema(), properties);
-        kafkaConsumer2.setStartFromLatest();
-        kafkaConsumer2.assignTimestampsAndWatermarks(new AssignerWithPeriodicWatermarks<String>() {
-            long  currentMaxTimestamp = 0L;
-            long  maxOutOfOrderness = 10000L;
-            Watermark watermark=null;
-            //最大允许的乱序时间是10s
+
+            /*//最大允许的乱序时间是10s
             @Nullable
             @Override
             public Watermark getCurrentWatermark() {
                 watermark = new Watermark(currentMaxTimestamp - maxOutOfOrderness);
                 return watermark;
-            }
-            @Override
+            }*/
+           /* @Override
             public long extractTimestamp(String element, long previousElementTimestamp) {
+                String[] split = element.split(",");
+                String timeStamp = split[0];
+                String name = split[1];
+                String city = split[2];
+                Row row = new Row(3);
+                row.setField(0,timeStamp);
+                row.setField(1,name);
+                row.setField(2,city);
+                long timeStamp1 = 0;
+                try {
+                    timeStamp1 = simpleDateFormat.parse(timeStamp).getDate();
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                currentMaxTimestamp = Math.max(timeStamp1, currentMaxTimestamp);
+                return timeStamp1 ;
+            }*/
+        });
+        FlinkKafkaConsumer010<String> kafkaConsumer2 = new FlinkKafkaConsumer010<>("join2", new SimpleStringSchema(), properties);
+        kafkaConsumer2.setStartFromEarliest();
+        kafkaConsumer2.assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<String>(Time.seconds(10000L)) {
+            long  currentMaxTimestamp = 0L;
+            long  maxOutOfOrderness = 10000L;
+            Watermark watermark=null;
+
+            @Override
+            public long extractTimestamp(String element) {
                 String[] split = element.split(",");
                 String timeStamp = split[0];
                 String name = split[1];
@@ -112,6 +128,35 @@ public class DoubleJoin {
                 currentMaxTimestamp = Math.max(timeStamp1, currentMaxTimestamp);
                 return timeStamp1 ;
             }
+
+           /* //最大允许的乱序时间是10s
+            @Nullable
+            @Override
+            public Watermark getCurrentWatermark() {
+                watermark = new Watermark(currentMaxTimestamp - maxOutOfOrderness);
+                return watermark;
+            }*/
+           /* @Override
+            public long extractTimestamp(String element, long previousElementTimestamp) {
+                String[] split = element.split(",");
+                String timeStamp = split[0];
+                String name = split[1];
+                String age = split[2];
+                String school= split[3];
+                Row row = new Row(4);
+                row.setField(0,timeStamp);
+                row.setField(1,name);
+                row.setField(2,age);
+                row.setField(3,school);
+                long timeStamp1 = 0;
+                try {
+                    timeStamp1 = simpleDateFormat.parse(timeStamp).getDate();
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                currentMaxTimestamp = Math.max(timeStamp1, currentMaxTimestamp);
+                return timeStamp1 ;
+            }*/
         });
         DataStreamSource<String> source1 = env.addSource(kafkaConsumer1);
         DataStreamSource<String> source2 = env.addSource(kafkaConsumer2);
