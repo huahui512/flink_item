@@ -37,7 +37,7 @@ import static sun.misc.Version.print;
 public class DoubleJoin {
     public static void main(String[] args) {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-
+        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
         //设置kafka连接参数
         Properties properties = new Properties();
@@ -47,6 +47,7 @@ public class DoubleJoin {
         properties.setProperty("auto.offset.reset", "earliest");
         FlinkKafkaConsumer010<String> kafkaConsumer1 = new FlinkKafkaConsumer010<>("join1", new SimpleStringSchema(), properties);
         kafkaConsumer1.setStartFromEarliest();
+
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         kafkaConsumer1.assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<String>(Time.seconds(10000L)) {
             long  currentMaxTimestamp = 0L;
@@ -69,7 +70,7 @@ public class DoubleJoin {
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
-                currentMaxTimestamp = Math.max(timeStamp1, currentMaxTimestamp);
+                //currentMaxTimestamp = Math.max(timeStamp1, currentMaxTimestamp);
                 return timeStamp1 ;
             }
 
@@ -125,7 +126,7 @@ public class DoubleJoin {
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
-                currentMaxTimestamp = Math.max(timeStamp1, currentMaxTimestamp);
+               // currentMaxTimestamp = Math.max(timeStamp1, currentMaxTimestamp);
                 return timeStamp1 ;
             }
 
@@ -162,7 +163,7 @@ public class DoubleJoin {
         DataStreamSource<String> source2 = env.addSource(kafkaConsumer2);
         /*DataStreamSource<String> source1 = env.readTextFile("/Users/apple/Downloads/1.txt");
         DataStreamSource<String> source2 = env.readTextFile("/Users/apple/Downloads/2.txt");*/
-        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+
 
         /**
          * 数据流1
