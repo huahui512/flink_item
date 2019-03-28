@@ -45,15 +45,15 @@ public class DoubleJoin {
         properties.setProperty("group.id", "jj");
         properties.setProperty("auto.offset.reset", "earliest");
         FlinkKafkaConsumer010<String> kafkaConsumer1 = new FlinkKafkaConsumer010<>("join1", new SimpleStringSchema(), properties);
-
+        kafkaConsumer1.setStartFromLatest();
 
         FlinkKafkaConsumer010<String> kafkaConsumer2 = new FlinkKafkaConsumer010<>("join2", new SimpleStringSchema(), properties);
-
+        kafkaConsumer2.setStartFromLatest();
         DataStreamSource<String> source1 = env.addSource(kafkaConsumer1);
         DataStreamSource<String> source2 = env.addSource(kafkaConsumer2);
         /*DataStreamSource<String> source1 = env.readTextFile("/Users/apple/Downloads/1.txt");
         DataStreamSource<String> source2 = env.readTextFile("/Users/apple/Downloads/2.txt");*/
-        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+        env.setStreamTimeCharacteristic(TimeCharacteristic.ProcessingTime);
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         /**
          * 数据流1

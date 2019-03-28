@@ -27,25 +27,15 @@ import java.util.Properties;
 public class WindowsTest {
     public static void main(String[] args) {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        String kafkaBrokers = null;
-        String topic1 = null;
-        String groupId = null;
-        if (args.length == 3) {
-            kafkaBrokers = args[0];
-            topic1 = args[1];
-            groupId = args[2];
-        } else {
-            System.exit(1);
-        }
-
-
         //设置kafka连接参数
         Properties properties = new Properties();
-        properties.setProperty("bootstrap.servers", kafkaBrokers);
-        properties.setProperty("group.id", groupId);
+        properties.setProperty("bootstrap.servers", "10.2.40.10:9092,10.2.40.15:9092,10.2.40.14:9092");
+        //properties.setProperty("flink.partition-discovery.interval-millis", "5000");
+        properties.setProperty("group.id", "kk");
         properties.setProperty("auto.offset.reset", "earliest");
+        FlinkKafkaConsumer010<String> kafkaConsumer1 = new FlinkKafkaConsumer010<>("windata", new SimpleStringSchema(), properties);
 
-        FlinkKafkaConsumer010<String> kafkaConsumer1 = new FlinkKafkaConsumer010<>(topic1, new SimpleStringSchema(), properties);
+      //  FlinkKafkaConsumer010<String> kafkaConsumer1 = new FlinkKafkaConsumer010<>(topic1, new SimpleStringSchema(), properties);
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
