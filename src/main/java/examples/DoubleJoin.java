@@ -49,10 +49,7 @@ public class DoubleJoin {
         kafkaConsumer1.setStartFromEarliest();
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        kafkaConsumer1.assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<String>(Time.seconds(10000L)) {
-            long  currentMaxTimestamp = 0L;
-            long  maxOutOfOrderness = 10000L;
-            Watermark watermark=null;
+        kafkaConsumer1.assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<String>(Time.seconds(1000L)) {
 
             @Override
             public long extractTimestamp(String element) {
@@ -64,50 +61,21 @@ public class DoubleJoin {
                 row.setField(0,timeStamp);
                 row.setField(1,name);
                 row.setField(2,city);
+                System.out.println(row.toString());
                 long timeStamp1 = 0;
                 try {
                     timeStamp1 = simpleDateFormat.parse(timeStamp).getDate();
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
-                //currentMaxTimestamp = Math.max(timeStamp1, currentMaxTimestamp);
                 return timeStamp1 ;
             }
 
-            /*//最大允许的乱序时间是10s
-            @Nullable
-            @Override
-            public Watermark getCurrentWatermark() {
-                watermark = new Watermark(currentMaxTimestamp - maxOutOfOrderness);
-                return watermark;
-            }*/
-           /* @Override
-            public long extractTimestamp(String element, long previousElementTimestamp) {
-                String[] split = element.split(",");
-                String timeStamp = split[0];
-                String name = split[1];
-                String city = split[2];
-                Row row = new Row(3);
-                row.setField(0,timeStamp);
-                row.setField(1,name);
-                row.setField(2,city);
-                long timeStamp1 = 0;
-                try {
-                    timeStamp1 = simpleDateFormat.parse(timeStamp).getDate();
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                currentMaxTimestamp = Math.max(timeStamp1, currentMaxTimestamp);
-                return timeStamp1 ;
-            }*/
+
         });
         FlinkKafkaConsumer010<String> kafkaConsumer2 = new FlinkKafkaConsumer010<>("join2", new SimpleStringSchema(), properties);
         kafkaConsumer2.setStartFromEarliest();
-        kafkaConsumer2.assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<String>(Time.seconds(10000L)) {
-            long  currentMaxTimestamp = 0L;
-            long  maxOutOfOrderness = 10000L;
-            Watermark watermark=null;
-
+        kafkaConsumer2.assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<String>(Time.seconds(1000L)) {
             @Override
             public long extractTimestamp(String element) {
                 String[] split = element.split(",");
@@ -120,6 +88,7 @@ public class DoubleJoin {
                 row.setField(1,name);
                 row.setField(2,age);
                 row.setField(3,school);
+                System.out.println(row.toString());
                 long timeStamp1 = 0;
                 try {
                     timeStamp1 = simpleDateFormat.parse(timeStamp).getDate();
@@ -130,40 +99,10 @@ public class DoubleJoin {
                 return timeStamp1 ;
             }
 
-           /* //最大允许的乱序时间是10s
-            @Nullable
-            @Override
-            public Watermark getCurrentWatermark() {
-                watermark = new Watermark(currentMaxTimestamp - maxOutOfOrderness);
-                return watermark;
-            }*/
-           /* @Override
-            public long extractTimestamp(String element, long previousElementTimestamp) {
-                String[] split = element.split(",");
-                String timeStamp = split[0];
-                String name = split[1];
-                String age = split[2];
-                String school= split[3];
-                Row row = new Row(4);
-                row.setField(0,timeStamp);
-                row.setField(1,name);
-                row.setField(2,age);
-                row.setField(3,school);
-                long timeStamp1 = 0;
-                try {
-                    timeStamp1 = simpleDateFormat.parse(timeStamp).getDate();
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                currentMaxTimestamp = Math.max(timeStamp1, currentMaxTimestamp);
-                return timeStamp1 ;
-            }*/
+
         });
         DataStreamSource<String> source1 = env.addSource(kafkaConsumer1);
         DataStreamSource<String> source2 = env.addSource(kafkaConsumer2);
-        /*DataStreamSource<String> source1 = env.readTextFile("/Users/apple/Downloads/1.txt");
-        DataStreamSource<String> source2 = env.readTextFile("/Users/apple/Downloads/2.txt");*/
-
 
         /**
          * 数据流1
@@ -181,31 +120,8 @@ public class DoubleJoin {
                 row.setField(2,city);
                 return row;
             }
-        })/*.assignTimestampsAndWatermarks(new AssignerWithPeriodicWatermarks<Row>() {
-             long  currentMaxTimestamp = 0L;
-             long  maxOutOfOrderness = 10000L;
-             Watermark watermark=null;
-            //最大允许的乱序时间是10s
-             @Nullable
-             @Override
-             public Watermark getCurrentWatermark() {
-                watermark = new Watermark(currentMaxTimestamp - maxOutOfOrderness);
-                 return watermark;
-             }
-             @Override
-             public long extractTimestamp(Row element, long previousElementTimestamp) {
-                 long timeStamp = 0;
-                 try {
-                     timeStamp = simpleDateFormat.parse(element.getField(0).toString()).getDate();
-                 } catch (ParseException e) {
-                     e.printStackTrace();
-                 }
-                 currentMaxTimestamp = Math.max(timeStamp, currentMaxTimestamp);
-                     return timeStamp ;
-             }
-         }
-        )*/;
-        stream1.print();
+        });
+
         /**
          * 数据流2
          */
@@ -225,30 +141,7 @@ public class DoubleJoin {
                 return row;
             }
 
-        })/*.assignTimestampsAndWatermarks(new AssignerWithPeriodicWatermarks<Row>() {
-            long  currentMaxTimestamp = 0L;
-            long  maxOutOfOrderness = 10000L;
-            Watermark watermark=null;
-            //最大允许的乱序时间是10s
-            @Nullable
-            @Override
-            public Watermark getCurrentWatermark() {
-                watermark = new Watermark(currentMaxTimestamp - maxOutOfOrderness);
-                return watermark;
-            }
-            @Override
-            public long extractTimestamp(Row element, long previousElementTimestamp) {
-                long timeStamp = 0;
-                try {
-                    timeStamp = simpleDateFormat.parse(element.getField(0).toString()).getDate();
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                currentMaxTimestamp = Math.max(timeStamp, currentMaxTimestamp);
-                return timeStamp ;
-            }
-        })*/;
-         stream2.print();
+        });
         /**
          * 双流join
          */
@@ -256,25 +149,24 @@ public class DoubleJoin {
                 .where(new KeySelector<Row, String>() {
                     @Override
                     public String getKey(Row value) throws Exception {
-                        System.out.println("stream1"+value.toString());
+                        System.out.println("stream1---->"+value.toString());
                         return value.getField(1).toString();
                     }
                 })
                 .equalTo(new KeySelector<Row, String>() {
                     @Override
                     public String getKey(Row value) throws Exception {
-                        System.out.println("stream2"+value.toString());
+                        System.out.println("stream2--->"+value.toString());
                         return value.getField(1).toString();
                     }
                 })
-                .window(TumblingEventTimeWindows.of(Time.seconds(5)))
-                .apply(new CoGroupFunction<Row, Row, Row>() {
+                .window(TumblingEventTimeWindows.of(Time.seconds(10)))
+                .apply(new CoGroupFunction<Row, Row, String>() {
                     @Override
-                    public void coGroup(Iterable<Row> first, Iterable<Row> second, Collector<Row> out) throws Exception {
-
+                    public void coGroup(Iterable<Row> first, Iterable<Row> second, Collector<String> out) throws Exception {
                         System.out.println("流1"+first+"流2"+second);
-                    first.forEach(t ->
-                    second.forEach(x ->
+                        first.forEach(t ->
+                                second.forEach(x ->
                             {
                                 //双流join  选取需要的字段
                                 Row row = new Row(3);
@@ -285,10 +177,10 @@ public class DoubleJoin {
                                 row.setField(0, field1);
                                 row.setField(1, field2);
                                 row.setField(2, field3);
-                                out.collect(row);
+                                out.collect(row.toString());
+                                System.out.println(row.toString()+"yyyyyyyy");
                             }
                     ));
-                    System.out.println("join"+first.toString());
                     }
                 }).print();
 
