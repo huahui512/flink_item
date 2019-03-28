@@ -44,14 +44,12 @@ public class WindowsTest {
         //设置kafka连接参数
         Properties properties = new Properties();
         properties.setProperty("bootstrap.servers", "10.2.40.10:9092,10.2.40.15:9092,10.2.40.14:9092");
-        properties.setProperty("zookeeper.connect", "");
-        properties.setProperty("flink.partition-discovery.interval-millis", "5000");
         properties.setProperty("group.id", "tt");
         FlinkKafkaConsumer010<String> kafkaConsumer1 = new FlinkKafkaConsumer010<>("windata", new SimpleStringSchema(), properties);
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-        System.out.println("============》 任务开始  ==================》");
+        System.out.println("============》 任务开始+++++");
         kafkaConsumer1.setStartFromLatest();
         DataStreamSource<String> source1 = env.addSource(kafkaConsumer1);
         SingleOutputStreamOperator<Row> stream1 = source1.map(new MapFunction<String, Row>() {

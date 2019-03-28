@@ -55,8 +55,6 @@ public class DoubleJoin {
         //设置kafka连接参数
         Properties properties = new Properties();
         properties.setProperty("bootstrap.servers", kafkaBrokers);
-        properties.setProperty("zookeeper.connect", zkBrokers);
-        properties.setProperty("flink.partition-discovery.interval-millis", "5000");
         properties.setProperty("group.id", groupId);
         /*//设置kafka连接参数
         Properties properties = new Properties();
