@@ -46,8 +46,10 @@ public class DoubleJoin {
         properties.setProperty("group.id", "jj");
         properties.setProperty("auto.offset.reset", "earliest");
         FlinkKafkaConsumer010<String> kafkaConsumer1 = new FlinkKafkaConsumer010<>("join1", new SimpleStringSchema(), properties);
-        kafkaConsumer1.setStartFromLatest();
+        kafkaConsumer1.setStartFromEarliest();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        //设置水印生成周期
+        env.getConfig().setAutoWatermarkInterval(5000L);
         kafkaConsumer1.assignTimestampsAndWatermarks(new AssignerWithPeriodicWatermarks<String>() {
             long  currentMaxTimestamp = 0L;
             long  maxOutOfOrderness = 10000L;
@@ -80,7 +82,7 @@ public class DoubleJoin {
             }
         });
         FlinkKafkaConsumer010<String> kafkaConsumer2 = new FlinkKafkaConsumer010<>("join2", new SimpleStringSchema(), properties);
-        kafkaConsumer2.setStartFromLatest();
+        kafkaConsumer2.setStartFromEarliest();
         kafkaConsumer2.assignTimestampsAndWatermarks(new AssignerWithPeriodicWatermarks<String>() {
             long  currentMaxTimestamp = 0L;
             long  maxOutOfOrderness = 10000L;
@@ -116,8 +118,6 @@ public class DoubleJoin {
         });
         DataStreamSource<String> source1 = env.addSource(kafkaConsumer1);
         DataStreamSource<String> source2 = env.addSource(kafkaConsumer2);
-        /*DataStreamSource<String> source1 = env.readTextFile("/Users/apple/Downloads/1.txt");
-        DataStreamSource<String> source2 = env.readTextFile("/Users/apple/Downloads/2.txt");*/
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
         /**
@@ -136,31 +136,8 @@ public class DoubleJoin {
                 row.setField(2,city);
                 return row;
             }
-        })/*.assignTimestampsAndWatermarks(new AssignerWithPeriodicWatermarks<Row>() {
-             long  currentMaxTimestamp = 0L;
-             long  maxOutOfOrderness = 10000L;
-             Watermark watermark=null;
-            //最大允许的乱序时间是10s
-             @Nullable
-             @Override
-             public Watermark getCurrentWatermark() {
-                watermark = new Watermark(currentMaxTimestamp - maxOutOfOrderness);
-                 return watermark;
-             }
-             @Override
-             public long extractTimestamp(Row element, long previousElementTimestamp) {
-                 long timeStamp = 0;
-                 try {
-                     timeStamp = simpleDateFormat.parse(element.getField(0).toString()).getDate();
-                 } catch (ParseException e) {
-                     e.printStackTrace();
-                 }
-                 currentMaxTimestamp = Math.max(timeStamp, currentMaxTimestamp);
-                     return timeStamp ;
-             }
-         }
-        )*/;
-        stream1.print();
+        });
+      //  stream1.print();
         /**
          * 数据流2
          */
@@ -180,30 +157,9 @@ public class DoubleJoin {
                 return row;
             }
 
-        })/*.assignTimestampsAndWatermarks(new AssignerWithPeriodicWatermarks<Row>() {
-            long  currentMaxTimestamp = 0L;
-            long  maxOutOfOrderness = 10000L;
-            Watermark watermark=null;
-            //最大允许的乱序时间是10s
-            @Nullable
-            @Override
-            public Watermark getCurrentWatermark() {
-                watermark = new Watermark(currentMaxTimestamp - maxOutOfOrderness);
-                return watermark;
-            }
-            @Override
-            public long extractTimestamp(Row element, long previousElementTimestamp) {
-                long timeStamp = 0;
-                try {
-                    timeStamp = simpleDateFormat.parse(element.getField(0).toString()).getDate();
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                currentMaxTimestamp = Math.max(timeStamp, currentMaxTimestamp);
-                return timeStamp ;
-            }
-        })*/;
-         stream2.print();
+        });
+
+       // source2.print();
         /**
          * 双流join
          */
@@ -211,23 +167,20 @@ public class DoubleJoin {
                 .where(new KeySelector<Row, String>() {
                     @Override
                     public String getKey(Row value) throws Exception {
-                        System.out.println("stream1"+value.toString());
                         return value.getField(1).toString();
                     }
                 })
                 .equalTo(new KeySelector<Row, String>() {
                     @Override
                     public String getKey(Row value) throws Exception {
-                        System.out.println("stream2"+value.toString());
                         return value.getField(1).toString();
                     }
                 })
                 .window(TumblingEventTimeWindows.of(Time.seconds(5)))
-                .trigger(CountTrigger.of(1))
+                .trigger(CountTrigger.of(5))
                 .apply(new CoGroupFunction<Row, Row, Row>() {
                     @Override
                     public void coGroup(Iterable<Row> first, Iterable<Row> second, Collector<Row> out) throws Exception {
-                        System.out.println("流1"+first+"流2"+second);
                     first.forEach(t ->
                     second.forEach(x ->
                             {
@@ -241,9 +194,10 @@ public class DoubleJoin {
                                 row.setField(1, field2);
                                 row.setField(2, field3);
                                 out.collect(row);
+                                System.out.println("JOIN"+row.toString());
                             }
+
                     ));
-                    System.out.println("join"+first.toString());
                     }
                 }).print();
 

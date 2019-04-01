@@ -38,20 +38,31 @@ public class WindowsTest {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
         System.out.println("============》 任务开始+++++");
-        kafkaConsumer1.setStartFromLatest();
+        kafkaConsumer1.setStartFromEarliest();
         DataStreamSource<String> source1 = env.addSource(kafkaConsumer1);
         SingleOutputStreamOperator<Row> stream1 = source1.map(new MapFunction<String, Row>() {
             @Override
             public Row map(String value) throws Exception {
-                String[] split = value.split(",");
-                String timeStamp = split[0];
-                String name = split[1];
-                int score = Integer.parseInt(split[2]);
-                Row row = new Row(3);
-                row.setField(0, timeStamp);
-                row.setField(1, name);
-                row.setField(2, score);
-                System.out.println(row.toString());
+                Row row = null;
+                try {
+                    String[] split = value.split(",");
+                    if (split.length==4){
+                    String timeStamp = split[0];
+                    String name = split[1];
+                    int score = Integer.parseInt(split[2]);
+                    row = new Row(3);
+                    row.setField(0, timeStamp);
+                    row.setField(1, name);
+                    row.setField(2, score);}
+                    else {
+                        System.out.println(value);
+                    }
+                    //System.out.println(row.toString());
+                } catch (NumberFormatException e) {
+                    //e.printStackTrace();
+
+                   System.out.println(value);
+                }
                 return row;
             }
         }).assignTimestampsAndWatermarks(new AssignerWithPeriodicWatermarks<Row>() {
@@ -84,7 +95,7 @@ public class WindowsTest {
                 return value.getField(1).toString();
             }
         }).window(TumblingEventTimeWindows.of(Time.seconds(5)))
-                .trigger(CountTrigger.of(1))
+               .trigger(CountTrigger.of(5))
                 .reduce(new ReduceFunction<Row>() {
                     @Override
                     public Row reduce(Row value1, Row value2) throws Exception {

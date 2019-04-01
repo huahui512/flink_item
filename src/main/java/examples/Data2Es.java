@@ -1,7 +1,7 @@
 package examples;
 
 
-import com.missfresh.output.EsOutPut;
+
 import com.missfresh.util.GetInfo;
 import com.missfresh.util.MyRowInfo;
 import org.apache.flink.api.common.functions.MapFunction;
@@ -133,7 +133,7 @@ public class Data2Es {
             }
         }).uid("map2");
         //数据写入es
-        outputStream.addSink(new EsOutPut(sqlInfo)).uid("sink1");
+       // outputStream.addSink(new EsOutPut(sqlInfo)).uid("sink1");
         //设置jobName
         env.execute("data2es");
     }

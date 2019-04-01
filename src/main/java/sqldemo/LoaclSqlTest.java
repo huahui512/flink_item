@@ -1,6 +1,6 @@
 package sqldemo;
 
-import com.missfresh.output.EsOutPut;
+
 import com.missfresh.util.GetInfo;
 import com.missfresh.util.MyRowInfo;
 import com.missfresh.util.Parameter;

@@ -1,3 +1,4 @@
+/*
 package com.missfresh.output;
 
 import com.missfresh.util.SqlParse;
@@ -18,10 +19,12 @@ import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 
+*/
 /**
  * @author wangzhihua
  * @date 2019-03-04 15:32
- */
+ *//*
+
 public class EsOutPut extends RichSinkFunction<Row> {
     String sqlInfo;
 
@@ -46,28 +49,34 @@ public class EsOutPut extends RichSinkFunction<Row> {
                 .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), 9300));
 
         bulkProcessor = BulkProcessor.builder(client, new BulkProcessor.Listener() {
-            /**
+            */
+/**
              * Callback before the bulk is executed.
-             */
+             *//*
+
             @Override
             public void beforeBulk(long l, BulkRequest bulkRequest) {
                 System.out.println("beforeBulk");
             }
 
-            /**
+            */
+/**
              * Callback after a failed execution of bulk request.
              * <p>
              * Note that in case an instance of <code>InterruptedException</code> is passed, which means that request processing has been
              * cancelled externally, the thread's interruption status has been restored prior to calling this method.
-             */
+             *//*
+
             @Override
             public void afterBulk(long l, BulkRequest bulkRequest, BulkResponse bulkResponse) {
                 System.out.println("请求成功时的回调");
             }
 
-            /**
+            */
+/**
              * Callback after a successful execution of bulk request.
-             */
+             *//*
+
             @Override
             public void afterBulk(long l, BulkRequest bulkRequest, Throwable throwable) {
                 System.out.println("请求失败后调用 "+l);
@@ -87,11 +96,13 @@ public class EsOutPut extends RichSinkFunction<Row> {
                 .build();
     }
 
-    /**
+    */
+/**
      * @param value
      * @param context
      * @throws Exception
-     */
+     *//*
+
 
     @Override
     public void invoke(Row value, Context context) throws Exception {
@@ -111,3 +122,4 @@ public class EsOutPut extends RichSinkFunction<Row> {
         bulkProcessor.close();
     }
 }
+*/

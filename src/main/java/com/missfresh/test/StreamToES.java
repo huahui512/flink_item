@@ -1,3 +1,4 @@
+/*
 
 package com.missfresh.test;
 
@@ -33,9 +34,11 @@ import java.util.Map;
 import java.util.Properties;
 
 
+*/
 /**
  * @author wangtaiyang
- */
+ *//*
+
 
 public class StreamToES {
     public static void main(String[] args) throws Exception {
@@ -79,9 +82,11 @@ public class StreamToES {
 
             bulkProcessor = BulkProcessor.builder(client, new BulkProcessor.Listener() {
 
+*/
 /**
                  * Callback before the bulk is executed.
-                 */
+                 *//*
+
 
                 @Override
                 public void beforeBulk(long l, BulkRequest bulkRequest) {
@@ -89,12 +94,14 @@ public class StreamToES {
                 }
 
 
+*/
 /**
                  * Callback after a failed execution of bulk request.
                  * <p>
                  * Note that in case an instance of <code>InterruptedException</code> is passed, which means that request processing has been
                  * cancelled externally, the thread's interruption status has been restored prior to calling this method.
-                 */
+                 *//*
+
 
                 @Override
                 public void afterBulk(long l, BulkRequest bulkRequest, BulkResponse bulkResponse) {
@@ -102,9 +109,11 @@ public class StreamToES {
                 }
 
 
+*/
 /**
                  * Callback after a successful execution of bulk request.
-                 */
+                 *//*
+
 
                 @Override
                 public void afterBulk(long l, BulkRequest bulkRequest, Throwable throwable) {
@@ -203,3 +212,4 @@ public class StreamToES {
 
 }
 
+*/

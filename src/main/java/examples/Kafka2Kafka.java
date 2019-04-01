@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
+import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.operators.DataSource;
@@ -74,7 +75,17 @@ public class Kafka2Kafka {
         kafkaConsumer010.setStartFromTimestamp(1553567497000L);
         DataStreamSource<String> kafkaData = env.addSource(kafkaConsumer010);
         //解析kafka数据流 转化成固定格式数据流
-        DataStream<String> userData = kafkaData.map(new MapFunction<String, String>() {
+        DataStream<String> userData = kafkaData.map(new RichMapFunction<String, String>() {
+            Counter mapDataNub;
+            @Override
+            public void open(Configuration parameters) throws Exception {
+                mapDataNub=  getRuntimeContext()
+                       .getMetricGroup()
+                       .addGroup("flink_test_metric")
+                       .counter("mapDataNub");
+
+            }
+
             @Override
             public String map(String s)  {
                 String s1 ="";
@@ -92,22 +103,17 @@ public class Kafka2Kafka {
                     map.put("behavior", behavior);
                     map.put("timestamp", timestamp);
                     s1 = JSON.toJSONString(map);
+                    mapDataNub.inc();
                     System.out.println("数据"+map.toString());
                 } catch (NumberFormatException e) {
                     e.printStackTrace();
                 }
                 return  s1;
             }
+
+
         });
-        userData.print();
-        kafkaData.filter(new FilterFunction<String>() {
-            @Override
-            public boolean filter(String value) throws Exception {
-                System.out.println(value);
-                return true;
-            }
-        });
-        userData.print();
+
 
         FlinkKafkaProducer010<String> myProducer = new FlinkKafkaProducer010<String>(
                 kafkaBrokers,            // broker list
