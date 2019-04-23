@@ -102,7 +102,6 @@ public class LoaclSqlTest {
         })
                 //返回Row封装数据的名称与类型,以便下一个算子能识别此类型
                 .returns(rowTypeInfo);
-        ;
 
         Table table = tableEnv.fromDataStream(userData);
 
@@ -121,9 +120,6 @@ public class LoaclSqlTest {
         });
 
        // outputStream.addSink(new EsOutPut("select count(distinct userId) as uv ,behavior from userTable group by behavior"));
-
-
-
         System.out.println("===============》 flink任务结束  ==============》");
         env.execute("sql_dara2redis");
     }

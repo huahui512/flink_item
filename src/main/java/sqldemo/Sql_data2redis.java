@@ -101,7 +101,7 @@ public class Sql_data2redis {
             }
         })
                 //返回Row封装数据的名称与类型,以便下一个算子能识别此类型
-                .returns(rowTypeInfo);;
+                .returns(rowTypeInfo);
 
         Table table = tableEnv.fromDataStream(userData);
 

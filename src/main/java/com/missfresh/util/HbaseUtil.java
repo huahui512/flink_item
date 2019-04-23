@@ -17,9 +17,9 @@ import java.util.List;
  * @date 2019-01-18 11:19
  */
 public class HbaseUtil {
-     public static Configuration conf = null;
-     public  static Connection connection = null;
-     public static Admin admin = null;
+    public static Configuration conf = null;
+    public static Connection connection = null;
+    public static Admin admin = null;
 
     /**
      * @desc 取得连接
@@ -71,39 +71,36 @@ public class HbaseUtil {
 
         }
 
-        /**
-         * 添加多条记录
-         */
-      /*  public static void addMoreRecord (String tableName, String family, String
-        qualifier, List < String > rowList, String value){
-            Table table = null;
-            try {
-                table = connection.getTable(TableName.valueOf(tableName));
 
-                List<Put> puts = new ArrayList<>();
-                Put put = null;
-                for (int i = 0; i < rowList.size(); i++) {
-                    put = new Put(Bytes.toBytes(rowList.get(i)));
-                    put.addColumn(Bytes.toBytes(family), Bytes.toBytes(qualifier), Bytes.toBytes(value));
+    }
+    /**
+     * 添加多条记录
+     */
+    public static void addMoreRecord(String tableName, String family, String  qualifier, List < String > rowList, String value){
+        Table table = null;
+        try {
+            table = connection.getTable(TableName.valueOf(tableName));
 
-                    puts.add(put);
-                }
-                table.put(puts);
+            List<Put> puts = new ArrayList<>();
+            Put put = null;
+            for (int i = 0; i < rowList.size(); i++) {
+                put = new Put(Bytes.toBytes(rowList.get(i)));
+                put.addColumn(Bytes.toBytes(family), Bytes.toBytes(qualifier), Bytes.toBytes(value));
 
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                if (table != null) {
-                    try {
-                        table.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                puts.add(put);
+            }
+            table.put(puts);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (table != null) {
+                try {
+                    table.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
-
-        }*/
-
-
+        }
     }
 }

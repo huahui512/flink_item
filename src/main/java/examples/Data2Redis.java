@@ -84,7 +84,7 @@ public class Data2Redis {
         //设置数据使用的数据结构 HashSet 并设置key的名称
         @Override
         public RedisCommandDescription getCommandDescription() {
-            return new RedisCommandDescription(RedisCommand.HSET, "flink");
+            return new RedisCommandDescription(RedisCommand.HSET, "ABINFO");
         }
 
         /**

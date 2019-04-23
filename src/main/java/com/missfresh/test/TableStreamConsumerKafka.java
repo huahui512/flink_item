@@ -33,7 +33,7 @@ public class TableStreamConsumerKafka {
         properties.setProperty("group.id", "test8");
 //        properties.setProperty("auto.offset.reset", "earliest");
         properties.setProperty("auto.offset.reset", "latest");
-        FlinkKafkaConsumer010<String> kafkaStream = new FlinkKafkaConsumer010<>("test", new SimpleStringSchema(), properties);
+        FlinkKafkaConsumer010<String> kafkaStream = new FlinkKafkaConsumer010<>("DimensionTablejoin", new SimpleStringSchema(), properties);
         DataStreamSource<String> kafkaStreamSource = env.addSource(kafkaStream);
 
         CheckpointConfig cpConfig = env.getCheckpointConfig();
@@ -65,9 +65,9 @@ public class TableStreamConsumerKafka {
             }
         }).returns(rowTypeInfo);
 
-        tableEnv.registerDataStream("test",userData);
+        tableEnv.registerDataStream("DimensionTablejoin",userData);
 
-        String sql="select user,sum(url) from test group by user";
+        String sql="select user,sum(url) from DimensionTablejoin group by user";
         Table t = tableEnv.sqlQuery(sql);
 
         tableEnv.toRetractStream(t, Row.class).map((MapFunction<Tuple2<Boolean, Row>, String>) value -> {

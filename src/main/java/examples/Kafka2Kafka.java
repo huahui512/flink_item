@@ -83,7 +83,6 @@ public class Kafka2Kafka {
                        .getMetricGroup()
                        .addGroup("flink_test_metric")
                        .counter("mapDataNub");
-
             }
 
             @Override

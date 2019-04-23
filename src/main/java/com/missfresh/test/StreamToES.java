@@ -1,6 +1,6 @@
 /*
 
-package com.missfresh.test;
+package com.missfresh.DimensionTablejoin;
 
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.configuration.Configuration;
@@ -48,8 +48,8 @@ public class StreamToES {
         properties.setProperty("bootstrap.servers", "localhost:9092");
         properties.setProperty("group.id", "test3");
         properties.setProperty("auto.offset.reset", "earliest");
-        FlinkKafkaConsumer010<String> test = new FlinkKafkaConsumer010<>("test", new SimpleStringSchema(), properties);
-        DataStreamSource<String> stringDataStreamSource = env.addSource(test);
+        FlinkKafkaConsumer010<String> DimensionTablejoin = new FlinkKafkaConsumer010<>("DimensionTablejoin", new SimpleStringSchema(), properties);
+        DataStreamSource<String> stringDataStreamSource = env.addSource(DimensionTablejoin);
 
         CheckpointConfig cpConfig = env.getCheckpointConfig();
         env.enableCheckpointing(5000);

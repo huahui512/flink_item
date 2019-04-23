@@ -28,7 +28,7 @@ public class GrampusOrderETL {
         final ParameterTool params = ParameterTool.fromArgs(args);
         String bootstrapServers = params.get("bootstrapServers", "localhost:9092");
         String targetBootstrapServers = params.get("target-bootstrapServers", "localhost:9092");
-        String groupId = params.get("groupId", "test");
+        String groupId = params.get("groupId", "DimensionTablejoin");
         //earliest
         String offsetReset = params.get("offsetReset", "latest");
         String topic = params.get("topic");

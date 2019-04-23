@@ -21,7 +21,7 @@ public class ConsumerKafka {
         properties.setProperty("bootstrap.servers", "localhost:9092");
         properties.setProperty("group.id", "test3");
         properties.setProperty("auto.offset.reset" , "earliest");
-        FlinkKafkaConsumer010<String> test = new FlinkKafkaConsumer010<>("test", new SimpleStringSchema(), properties);
+        FlinkKafkaConsumer010<String> test = new FlinkKafkaConsumer010<>("DimensionTablejoin", new SimpleStringSchema(), properties);
         DataStreamSource<String> stringDataStreamSource = env.addSource(test);
 
         CheckpointConfig cpConfig = env.getCheckpointConfig();

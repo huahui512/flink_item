@@ -137,7 +137,7 @@ public class DoubleJoin {
                 return row;
             }
         });
-      //  stream1.print();
+       stream1.print();
         /**
          * 数据流2
          */
@@ -159,7 +159,7 @@ public class DoubleJoin {
 
         });
 
-       // source2.print();
+        source2.print();
         /**
          * 双流join
          */
@@ -177,7 +177,7 @@ public class DoubleJoin {
                     }
                 })
                 .window(TumblingEventTimeWindows.of(Time.seconds(5)))
-                .trigger(CountTrigger.of(5))
+                //.trigger(CountTrigger.of(5))
                 .apply(new CoGroupFunction<Row, Row, Row>() {
                     @Override
                     public void coGroup(Iterable<Row> first, Iterable<Row> second, Collector<Row> out) throws Exception {
@@ -196,11 +196,9 @@ public class DoubleJoin {
                                 out.collect(row);
                                 System.out.println("JOIN"+row.toString());
                             }
-
                     ));
                     }
                 }).print();
-
         try {
             env.execute("ddcddd");
         } catch (Exception e) {

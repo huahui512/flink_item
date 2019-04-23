@@ -33,7 +33,7 @@ public class HotItem {
         env.setParallelism(1);
        // String filEPath = HotItem.class.getClass().getClassLoader().getResource("userData.txt").getPath();
         //读取hdfs中的测试数据
-        DataStream<String> source = env.readTextFile("hdfs://HDFS80377/test/user.txt");
+        DataStream<String> source = env.readTextFile("hdfs://HDFS80377/DimensionTablejoin/user.txt");
         source.print();
         System.out.println(source);
         SingleOutputStreamOperator<Tuple5<Long, Long, Long, String, Long>> data1 = source.map(new MapFunction<String, Tuple5<Long, Long, Long, String, Long>>() {
