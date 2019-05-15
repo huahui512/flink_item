@@ -9,7 +9,7 @@
     <version>1.0-SNAPSHOT</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <flink.version>1.6.1</flink.version>
+        <flink.version>1.7.1</flink.version>
         <java.version>1.8</java.version>
         <scala.version>2.11.8</scala.version>
         <scala.binary.version>2.11</scala.binary.version>
@@ -53,6 +53,19 @@
             <artifactId>httpclient</artifactId>
             <version>3.0.1</version>
         </dependency>-->
+
+
+        <dependency>
+
+            <groupId>org.apache.flink</groupId>
+
+            <artifactId>flink-jdbc_${scala.binary.version}</artifactId>
+
+            <version>${flink.version}</version>
+
+        </dependency>
+
+
 
         <dependency>
             <groupId>mysql</groupId>

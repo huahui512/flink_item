@@ -24,7 +24,7 @@ public class MysqlSource  extends RichSourceFunction<String> {
         super.open(parameters);
         Class.forName("com.mysql.jdbc.Driver");//加载数据库驱动
         connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/bifrost?useSSL=false", "root", "518189aA");//获取连接
-        ps  = connection.prepareStatement("select job_name from rt_job");
+        ps  = connection.prepareStatement("select * from userinfo");
 
     }
     @Override
@@ -34,13 +34,15 @@ public class MysqlSource  extends RichSourceFunction<String> {
             try {
                 ResultSet resultSet = ps.executeQuery();
                 while (resultSet.next()) {
-                    String name = resultSet.getString("job_name");
-                    ctx.collect(name);//发送结果，结果是tuple2类型，2表示两个元素，可根据实际情况选择
+                    String userId = resultSet.getString("userId");
+                    String city = resultSet.getString("city");
+                    String u_time= resultSet.getString("utime");
+                    ctx.collect(userId+","+city+","+u_time);//发送结果，结果是tuple2类型，2表示两个元素，可根据实际情况选择
                 }
-            } catch (Exception e) {
+          } catch (Exception e) {
                 logger.error("runException:{}", e);
             }
-            Thread.sleep(1000*5);
+            Thread.sleep(5000);
         }
    }
     @Override

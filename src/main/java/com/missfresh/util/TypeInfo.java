@@ -27,4 +27,11 @@ public class TypeInfo {
                 return Types.STRING();
         }
     }
+
+    public static void main(String[] args) {
+        String[] segArr = "ss d  s  s".trim().split("\\s+");
+        for (String s: segArr) {
+            System.out.println(s);
+        }
+    }
 }

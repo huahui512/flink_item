@@ -1,6 +1,7 @@
 package examples;
 
 import com.missfresh.util.JedisPoolUtil;
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
@@ -38,15 +39,17 @@ public class WindowsTest {
         //设置kafka连接参数
         Properties properties = new Properties();
         properties.setProperty("bootstrap.servers","10.2.40.10:9092,10.2.40.15:9092,10.2.40.14:9092");
-        properties.setProperty("group.id", "tt");
+        properties.setProperty("group.id", "tt1");
         FlinkKafkaConsumer010<String> kafkaConsumer1 = new FlinkKafkaConsumer010<>("join1", new SimpleStringSchema(), properties);
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
         System.out.println("============》 任务开始+++++");
-        kafkaConsumer1.setStartFromEarliest();
+        //kafkaConsumer1.setStartFromEarliest();
         DataStreamSource<String> source1 = env.addSource(kafkaConsumer1).setParallelism(1);
-        SingleOutputStreamOperator<Row> stream1 = source1.map(new MapFunction<String, Row>() {
+        source1.print();
+
+        /*SingleOutputStreamOperator<Row> stream1 = source1.map(new MapFunction<String, Row>() {
             @Override
             public Row map(String value) throws Exception {
                 Row row = null;
@@ -82,7 +85,7 @@ public class WindowsTest {
             }
         }).uid("ee").name("rrr").setParallelism(1);
 
-
+*/
 
 
 
