@@ -13,7 +13,6 @@ import org.apache.flink.table.api.TableEnvironment;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.api.Types;
 import org.apache.flink.table.api.java.StreamTableEnvironment;
-import org.apache.flink.table.descriptors.Csv;
 import org.apache.flink.table.descriptors.FileSystem;
 import org.apache.flink.table.descriptors.Schema;
 import org.apache.flink.table.sources.StreamTableSource;
@@ -38,7 +37,7 @@ public class TableConnect {
         System.out.println("===============》 开始读取kafka中的数据  ==============》");
 
         //获取表对象
-        StreamTableEnvironment tableEnv = TableEnvironment.getTableEnvironment(env);
+        StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env);
         tableEnv.registerTableSource("userTable",new MySource());
 
         Table table2 = tableEnv.sqlQuery("select userId,behavior from userTable");

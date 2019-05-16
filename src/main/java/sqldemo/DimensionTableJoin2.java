@@ -99,7 +99,7 @@ public class DimensionTableJoin2 {
         TemporalTableFunction t3 = table2.createTemporalTableFunction("proctime","userId");
         tableEnv.registerFunction("T3",t3);
         //临时表join语句
-        String sqlinfo2="select *  from T1 as u JOIN  LATERAL TABLE (T3(u.proctime)) AS  p ON u.userId = p.userId   where p.userId='561558' ";
+        String sqlinfo2="select *  from T1 JOIN  LATERAL TABLE (T3(proctime)) AS  p ON T1.userId = p.userId   where p.userId='561558' ";
         //返回结果表
         Table table3 = tableEnv.sqlQuery(sqlinfo2);
         DataStream<Tuple2<Boolean, Row>> joinResult = tableEnv.toRetractStream(table3, Row.class);

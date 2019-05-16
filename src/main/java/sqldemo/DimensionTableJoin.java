@@ -43,7 +43,7 @@ public class DimensionTableJoin {
     public static void main(String[] args) throws Exception {
         System.out.println("===============》 flink任务开始  ==============》");
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        StreamTableEnvironment tableEnv = TableEnvironment.getTableEnvironment(env);
+        StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env);
         //设置任务重启的次数和间隔
         env.setRestartStrategy(RestartStrategies.fixedDelayRestart(
                 3, // 尝试重启次数

@@ -30,7 +30,7 @@ public class DimensionTableJoin3 {
     public static void main(String[] args) throws Exception {
         System.out.println("===============》 flink任务开始  ==============》");
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        StreamTableEnvironment tEnv = TableEnvironment.getTableEnvironment(env);
+        StreamTableEnvironment tEnv = StreamTableEnvironment.create(env);
 
 // Provide a static data set of the rates history table.
         List<Tuple2<String, Long>> ratesHistoryData = new ArrayList<>();

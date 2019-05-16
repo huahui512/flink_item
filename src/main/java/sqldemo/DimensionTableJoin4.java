@@ -31,13 +31,13 @@ public class DimensionTableJoin4 {
         DataStreamSource<String>  mysqlData  = env.addSource(new RedisSource.MyRedisSource());
         //mysqlData.print();
         //获取表对象
-        StreamTableEnvironment tableEnv = TableEnvironment.getTableEnvironment(env);
+        StreamTableEnvironment tableEnv =  StreamTableEnvironment.create(env);
         //设置时间类型
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         //设置检查点时间间隔
         env.enableCheckpointing(5000);
         //获取实时流
-        DataStreamSource<String> streamSource = env.socketTextStream("127.0.0.1",6555);
+        DataStreamSource<String> streamSource = env.socketTextStream("127.0.0.1",7888);
         streamSource.print();
         //设置数据类型和名称
         String[] names = new String[] {"userId","name"};
@@ -93,12 +93,20 @@ public class DimensionTableJoin4 {
         TemporalTableFunction t3 = table2.createTemporalTableFunction("proctime","userId");
         tableEnv.registerFunction("T3",t3);
         //临时表join语句
-        String sqlinfo2="select *  from T1 as u , LATERAL TABLE (T3(u.proctime)) AS p where  u.userId = p.userId ";
+        String sqlinfo2="select *  from T1 as u JOIN LATERAL TABLE (T3(proctime)) AS p ON  u.userId = p.userId ";
 
         //返回结果表
         Table table3 = tableEnv.sqlQuery(sqlinfo2);
         DataStream<Tuple2<Boolean, Row>> joinResult = tableEnv.toRetractStream(table3, Row.class);
         joinResult.print();
+        /*tableEnv.registerDataStream("t1", userData);
+        tableEnv.registerDataStream("t2", userInfo);
+        String sqlinfo2="select *  from t1 as u join t2 as p on u.userId = p.userId ";
+
+        //返回结果表
+        Table table3 = tableEnv.sqlQuery(sqlinfo2);
+        DataStream<Tuple2<Boolean, Row>> joinResult = tableEnv.toRetractStream(table3, Row.class);
+        joinResult.print();*/
         env.execute("ddddddd");
     }
 

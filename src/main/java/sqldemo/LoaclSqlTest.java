@@ -50,7 +50,7 @@ public class LoaclSqlTest {
         System.out.println("===============》 flink任务开始  ==============》");
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         //获取表对象
-        StreamTableEnvironment tableEnv = TableEnvironment.getTableEnvironment(env);
+        StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env);
         //设置任务重启的次数和间隔
         env.setRestartStrategy(RestartStrategies.fixedDelayRestart(
                 3, // 尝试重启次数
