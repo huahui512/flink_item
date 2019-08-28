@@ -59,7 +59,6 @@ public  class  JoinFlatFun extends RichFlatMapFunction<String,String> {
             }
         };
         new Timer("LoadTimer").scheduleAtFixedRate(timerTask,0,2000l);
-
     }
 
     @Override

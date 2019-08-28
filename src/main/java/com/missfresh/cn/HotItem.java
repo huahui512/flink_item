@@ -64,7 +64,7 @@ public class HotItem {
                 return Tuple5.f4 * 1000;
             }
         });
-        KeyedStream<Tuple5<Long, Long, Long, String, Long>, Tuple> keyByData = data3.keyBy(1);
+        KeyedStream<Tuple5<Long, Long, Long, String, Long>, Tuple> keyByData = data3.keyBy(1,2);
         WindowedStream<Tuple5<Long, Long, Long, String, Long>, Tuple, TimeWindow> WindowedStream = keyByData.timeWindow(Time.minutes(60), Time.minutes(5));
         SingleOutputStreamOperator<ItemViewCount> aggregateData = WindowedStream.aggregate(new CountAgg(), new WindowResult());
         KeyedStream<ItemViewCount, Long> keyedStream = aggregateData.keyBy(new KeySelector<ItemViewCount, Long>() {

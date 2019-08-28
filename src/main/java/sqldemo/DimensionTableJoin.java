@@ -9,7 +9,6 @@ import org.apache.flink.api.common.time.Time;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.functions.KeySelector;
-import org.apache.flink.api.java.io.jdbc.JDBCInputFormat;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.typeutils.RowTypeInfo;
 import org.apache.flink.configuration.Configuration;
@@ -55,8 +54,7 @@ public class DimensionTableJoin {
         env.enableCheckpointing(5000);
         //设置检查点模式
         DataStreamSource<String> streamSource = env.socketTextStream("127.0.0.1",6888);
-
-
+        streamSource.writeAsText("hdfs://HDFS80377/testdata");
        /* streamSource.print();
         SingleOutputStreamOperator<String> result = JoinTable.RegisterJoinTable(streamSource, tableEnv, new JoinFlatFun("userinfo"));
         //获取join的结果流注册成表   表名  流表名+维表名

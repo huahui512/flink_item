@@ -66,7 +66,7 @@ public class UdfTest {
         tableEnv.registerFunction("stringCode",new UdfDemo1());
 
         tableEnv.registerDataStream("userTable",userData);
-        Table table2 = tableEnv.sqlQuery("select stringCode(userId) ,userId,itemId from userTable");
+        Table table2 = tableEnv.sqlQuery("select DATE,stringCode(userId) ,userId,itemId from userTable");
         DataStream<Row> infoDataStream = tableEnv.toAppendStream(table2, Row.class);
         infoDataStream.map(new MapFunction<Row, Object>() {
 

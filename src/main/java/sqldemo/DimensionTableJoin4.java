@@ -6,6 +6,8 @@ import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.typeutils.RowTypeInfo;
+import org.apache.flink.contrib.streaming.state.RocksDBStateBackend;
+import org.apache.flink.runtime.state.memory.MemoryStateBackend;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
@@ -32,12 +34,14 @@ public class DimensionTableJoin4 {
         //mysqlData.print();
         //获取表对象
         StreamTableEnvironment tableEnv =  StreamTableEnvironment.create(env);
+
+        env.setStateBackend(new RocksDBStateBackend("hdfs://namenode:40010/flink/checkpoints"));
         //设置时间类型
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         //设置检查点时间间隔
         env.enableCheckpointing(5000);
         //获取实时流
-        DataStreamSource<String> streamSource = env.socketTextStream("127.0.0.1",7888);
+        DataStreamSource<String> streamSource = env.socketTextStream("127.0.0.1",5888);
         streamSource.print();
         //设置数据类型和名称
         String[] names = new String[] {"userId","name"};
@@ -85,15 +89,15 @@ public class DimensionTableJoin4 {
         userInfo.print();
 
         //注册表并设置字段名和时间戳类型
-        Table table = tableEnv.fromDataStream(userData,"userId,name,proctime.proctime");
-        Table table2 = tableEnv.fromDataStream(userInfo,"userId,name,proctime.proctime");
+        Table table = tableEnv.fromDataStream(userData,"userId,name,s.proctime");
+        Table table2 = tableEnv.fromDataStream(userInfo,"userId,name,d.proctime");
         tableEnv.registerTable("T1",table);
-        tableEnv.registerTable("T2",table2);
+        //tableEnv.registerTable("T2",table2);
         //生成临时表函数，设置timeAttribute类型和维表的主键
-        TemporalTableFunction t3 = table2.createTemporalTableFunction("proctime","userId");
+        TemporalTableFunction t3 = table2.createTemporalTableFunction("d","userId");
         tableEnv.registerFunction("T3",t3);
         //临时表join语句
-        String sqlinfo2="select *  from T1 as u JOIN LATERAL TABLE (T3(proctime)) AS p ON  u.userId = p.userId ";
+        String sqlinfo2="select *  from T1 as u JOIN LATERAL TABLE (T3(s)) AS p ON  u.userId = p.userId ";
 
         //返回结果表
         Table table3 = tableEnv.sqlQuery(sqlinfo2);

@@ -24,7 +24,7 @@ public class HbaseUtil {
     /**
      * @desc 取得连接
      */
-    public static void setConf(String quorum, String port) {
+    public  void setConf(String quorum, String port) {
         try {
             conf = HBaseConfiguration.create();
             conf.set("hbase.zookeeper.quorum", quorum);//zookeeper地址
@@ -39,7 +39,7 @@ public class HbaseUtil {
     /**
      * @desc 连关闭接
      */
-    public static void close() {
+    public void close() {
         try {
             if (connection != null) {
                 connection.close();
@@ -55,7 +55,7 @@ public class HbaseUtil {
     /**
      * @desc 创建表
      */
-    public static void createTable(String tableName, String columnFamily) {
+    public  void createTable(String tableName, String columnFamily) {
 
 
         try {
@@ -76,7 +76,7 @@ public class HbaseUtil {
     /**
      * 添加多条记录
      */
-    public static void addMoreRecord(String tableName, String family, String  qualifier, List < String > rowList, String value){
+    public void addMoreRecord(String tableName, String family, String  qualifier, List < String > rowList, String value){
         Table table = null;
         try {
             table = connection.getTable(TableName.valueOf(tableName));
@@ -103,4 +103,40 @@ public class HbaseUtil {
             }
         }
     }
+    //判断表是否存在
+    public boolean isTableExist(String tableName) throws IOException {
+        TableName tbName = null;
+        try {
+            tbName = TableName.valueOf(tableName);
+            boolean flog=admin.tableExists(tbName);
+            return  flog ;
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (connection != null) {
+                connection.close();
+            }
+            if (admin != null) {
+                admin.close();
+            }
+            return false;
+        }
+
+
+    }
+
+    public static void main(String[] args) throws IOException {
+
+        String family = "info";
+        String tName = "rtlatform:abt_event_etl1";
+        //Table table = null;
+        String rowKey="40:10:21 62-30-9102155357163176703a176c7-8a02-b7c8-8538-a12bc4d94e63";
+        System.out.println("0000");
+        HbaseUtil hbaseUtil = new HbaseUtil();
+        hbaseUtil.setConf("10.2.40.12,10.2.40.11,10.2.40.8", "2181");
+        hbaseUtil.createTable(tName,"INFO");
+       // hbaseUtil.isTableExist("rt_platform:AB_test");
+        System.out.println("0000");
+        System.out.println( hbaseUtil.isTableExist("rt_platform:AB_test"));
+    }
+
 }

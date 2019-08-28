@@ -122,7 +122,6 @@ public class Sql_data2redis {
         FlinkJedisPoolConfig conf = new FlinkJedisPoolConfig.Builder().setHost("10.2.40.17").setPassword("518189").build();
         //实例化RedisSink，并通过flink的addSink的方式将flink计算的结果插入到redis
         infoDataStream.addSink(new RedisSink<Row>(conf, new Sql_data2redis.RedisExampleMapper()));
-
         System.out.println("===============》 flink任务结束  ==============》");
         env.execute("sql_dara2redis");
     }

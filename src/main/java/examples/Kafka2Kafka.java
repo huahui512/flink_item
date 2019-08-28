@@ -6,8 +6,10 @@ import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.operators.DataSource;
+import org.apache.flink.api.java.typeutils.PojoTypeInfo;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.metrics.*;
 import org.apache.flink.metrics.reporter.MetricReporter;
@@ -18,6 +20,8 @@ import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer010;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer010;
+import org.apache.flink.streaming.connectors.kafka.KafkaDeserializationSchema;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import java.util.HashMap;
@@ -70,10 +74,28 @@ public class Kafka2Kafka {
         //env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
         System.out.println("===============》 开始读取kafka中的数据  ==============》");
         //创建kafak消费者，获取kafak中的数据
-        FlinkKafkaConsumer010<String> kafkaConsumer010 = new FlinkKafkaConsumer010<>(topic, new SimpleStringSchema(), properties);
+        //1.8的KafkaDeserializationSchema()需要注意编码问题
+        FlinkKafkaConsumer010 flinkKafkaConsumer010 = new FlinkKafkaConsumer010<>(topic, new KafkaDeserializationSchema() {
+            @Override
+            public TypeInformation getProducedType() {
+                PojoTypeInfo<ConsumerRecord> pojoTypeInfo = (PojoTypeInfo<ConsumerRecord>) TypeInformation.of(ConsumerRecord.class);
 
-        kafkaConsumer010.setStartFromTimestamp(1553567497000L);
-        DataStreamSource<String> kafkaData = env.addSource(kafkaConsumer010);
+                return pojoTypeInfo;
+            }
+
+            @Override
+            public boolean isEndOfStream(Object nextElement) {
+                return false;
+            }
+
+            @Override
+            public Object deserialize(ConsumerRecord record) throws Exception {
+                return record;
+            }
+        }, properties);
+
+        //kafkaConsumer010.setStartFromTimestamp(1553567497000L);
+        DataStreamSource<String> kafkaData = env.addSource(flinkKafkaConsumer010);
         //解析kafka数据流 转化成固定格式数据流
         DataStream<String> userData = kafkaData.map(new RichMapFunction<String, String>() {
             Counter mapDataNub;

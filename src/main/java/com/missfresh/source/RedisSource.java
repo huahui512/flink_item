@@ -4,11 +4,11 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.RichSourceFunction;
-import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 
@@ -17,11 +17,13 @@ import java.util.Set;
  * @date 2019-03-21 15:33
  */
 public class RedisSource {
-    public static void main(String[] args) throws Exception {
-        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        DataStreamSource<String> source = env.addSource(new MyRedisSource());
-        source.print();
-        env.execute("redis  source");
+    public static void main(String[] args) {
+        ArrayList<String> strings = new ArrayList<>();
+        strings.add("a");
+        strings.add("a");
+        for (String s : strings) {
+            System.out.println(s);
+        }
     }
 
 
@@ -48,6 +50,7 @@ public class RedisSource {
             config = new JedisPoolConfig();
             jedisPool = new JedisPool(config, ADDR, PORT, TIMEOUT, AUTH, 5);
             jedis = jedisPool.getResource();
+
 
         }
 
@@ -79,7 +82,7 @@ public class RedisSource {
 
         @Override
         public void cancel() {
-            isRunning = true;
+            isRunning = false;
         }
 
         /**
@@ -93,6 +96,9 @@ public class RedisSource {
 
         }
     }
+
+
+
 
 
 }

@@ -92,29 +92,26 @@ public class Data2Es {
         //获取字段对应的数据类型
         TypeInformation[] typeInformations = rowTypeInfo.getFieldTypes();
         //使用Row封装数据类型
-        SingleOutputStreamOperator<Row> userData = kafkaData.map(new MapFunction<String, Row>() {
-            //通过循环 获取每一个字段的值
-            @Override
-            public Row map(String s) throws Exception {
-                String[] split = s.split("\u0000");
-                Row row = new Row(split.length);
-                for (int i = 0; i < split.length; i++) {
-                    String typeStr = typeInformations[i].toString();
-                    if ("Integer".equals(typeStr)) {
-                        row.setField(i, Integer.valueOf(split[i]));
-                    } else if ("Long".equals(typeStr)) {
-                        row.setField(i, Long.parseLong(split[i]));
-                    } else if ("Double".equals(typeStr)) {
-                        row.setField(i, Double.parseDouble(split[i]));
-                    } else if ("Float".equals(typeStr)) {
-                        row.setField(i, Float.parseFloat(split[i]));
-                    } else {
-                        row.setField(i, String.valueOf(split[i]));
-                    }
+        //通过循环 获取每一个字段的值
+        SingleOutputStreamOperator<Row> userData = kafkaData.map((MapFunction<String, Row>) s -> {
+            String[] split = s.split("\u0000");
+            Row row = new Row(split.length);
+            for (int i = 0; i < split.length; i++) {
+                String typeStr = typeInformations[i].toString();
+                if ("Integer".equals(typeStr)) {
+                    row.setField(i, Integer.valueOf(split[i]));
+                } else if ("Long".equals(typeStr)) {
+                    row.setField(i, Long.parseLong(split[i]));
+                } else if ("Double".equals(typeStr)) {
+                    row.setField(i, Double.parseDouble(split[i]));
+                } else if ("Float".equals(typeStr)) {
+                    row.setField(i, Float.parseFloat(split[i]));
+                } else {
+                    row.setField(i, String.valueOf(split[i]));
                 }
-                return row;
-
             }
+            return row;
+
         }).uid("map1")
                 //返回Row封装数据的名称与类型,以便下一个算子能识别此类型
                 .returns(rowTypeInfo).uid("return1");
@@ -125,12 +122,9 @@ public class Data2Es {
         //进行sql查询生成表对象
         Table table2 = tableEnv.sqlQuery(sqlInfo);
         DataStream<Tuple2<Boolean, Row>> tuple2DataStream = tableEnv.toRetractStream(table2, Row.class);
-        SingleOutputStreamOperator<Row> outputStream = tuple2DataStream.map(new MapFunction<Tuple2<Boolean, Row>, Row>() {
-            @Override
-            public Row map(Tuple2<Boolean, Row> value) throws Exception {
-                Row row1 = value.f1;
-                return row1;
-            }
+        SingleOutputStreamOperator<Row> outputStream = tuple2DataStream.map((MapFunction<Tuple2<Boolean, Row>, Row>) value -> {
+            Row row1 = value.f1;
+            return row1;
         }).uid("map2");
         //数据写入es
        // outputStream.addSink(new EsOutPut(sqlInfo)).uid("sink1");

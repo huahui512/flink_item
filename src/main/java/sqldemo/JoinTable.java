@@ -2,6 +2,7 @@ package sqldemo;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.RowTypeInfo;
+import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.table.api.Types;
@@ -12,8 +13,8 @@ import org.apache.flink.table.api.java.StreamTableEnvironment;
  * @date 2019-05-14 14:50
  */
 public class JoinTable {
-   public static SingleOutputStreamOperator<String>  RegisterJoinTable(DataStreamSource<String> streamSource, StreamTableEnvironment tableEnv,JoinFlatFun joinFlatFun,String scama){
-       SingleOutputStreamOperator<String> result = streamSource.flatMap(joinFlatFun);
+   public static DataStream<String>  RegisterJoinTable(DataStreamSource<String> streamSource, StreamTableEnvironment tableEnv,JoinFlatFun joinFlatFun,String scama){
+      DataStream<String> result = streamSource.flatMap(joinFlatFun);
        String[] names = new String[] {"behavior","userId","categoryId","itemId","timestamp"};
        TypeInformation[] types = new TypeInformation[] {Types.STRING(), Types.STRING(), Types.STRING(), Types.STRING(), Types.STRING()};
        RowTypeInfo rowTypeInfo = new RowTypeInfo(types, names);

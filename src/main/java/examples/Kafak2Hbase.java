@@ -4,7 +4,6 @@ package examples;
 import com.missfresh.cn.CountAgg;
 import com.missfresh.cn.ItemViewCount;
 import com.missfresh.cn.WindowResult;
-import com.missfresh.util.HBaseOutputFormat;
 import com.missfresh.util.HbaseUtil;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
@@ -38,25 +37,15 @@ import java.util.Properties;
  */
 public class Kafak2Hbase {
     public static void main(String[] args) throws Exception {
-        String kafkaBrokers=null;
-        String zkBrokers=null;
-        String topic =null;
-        String groupId=null;
+        String kafkaBrokers="10.2.40.10:9092,10.2.40.15:9092,10.2.40.14:9092";
+        String topic ="flink_log3";
+        String groupId="uu";
 
-        if (args.length == 4) {
-             kafkaBrokers=args[0];
-             zkBrokers=args[1];
-             topic =args[2];
-             groupId=args[3];
-        } else {
-            System.exit(1);
-        }
         System.out.println("===============》 flink任务开始  ==============》");
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         //设置kafka连接参数
         Properties  properties = new Properties();
         properties.setProperty("bootstrap.servers", kafkaBrokers);
-        properties.setProperty("zookeeper.connect", zkBrokers);
         properties.setProperty("group.id", groupId);
         //设置时间类型
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
@@ -67,10 +56,10 @@ public class Kafak2Hbase {
         System.out.println("===============》 开始读取kafka中的数据  ==============》");
         //创建kafak消费者，获取kafak中的数据
         FlinkKafkaConsumer010<String> kafkaConsumer010 = new FlinkKafkaConsumer010<>(topic, new SimpleStringSchema(), properties);
-        kafkaConsumer010.setStartFromEarliest();
+        kafkaConsumer010.setStartFromTimestamp(1562208050000l);
         DataStreamSource<String> kafkaData = env.addSource(kafkaConsumer010);
         kafkaData.print();
-
+/*
         SingleOutputStreamOperator<Tuple5<Long, Long, Long, String, Long>> data1 = kafkaData.map(new MapFunction<String, Tuple5<Long, Long, Long, String, Long>>() {
             @Override
             public Tuple5<Long, Long, Long, String, Long> map(String s) throws Exception {
@@ -94,11 +83,11 @@ public class Kafak2Hbase {
         //写入hbase
         data1.writeUsingOutputFormat(new HBaseOutputFormat());
 
-        System.out.println("===============》 flink任务结束  ==============》");
+        System.out.println("===============》 flink任务结束  ==============》");*/
 
         //设置程序名称
         env.execute("data_from_kafak_wangzh");
-        HbaseUtil.close();
+       /* HbaseUtil.close();*/
 
     }
 }

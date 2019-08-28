@@ -12,11 +12,13 @@ import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks;
 import org.apache.flink.streaming.api.functions.windowing.AllWindowFunction;
+import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
 import org.apache.flink.streaming.api.watermark.Watermark;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.api.windowing.triggers.CountTrigger;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
+import org.apache.flink.streaming.api.windowing.windows.Window;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer010;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Collector;
@@ -36,115 +38,70 @@ public class WindowsTest {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
 
-        //设置kafka连接参数
-        Properties properties = new Properties();
-        properties.setProperty("bootstrap.servers","10.2.40.10:9092,10.2.40.15:9092,10.2.40.14:9092");
-        properties.setProperty("group.id", "tt1");
-        FlinkKafkaConsumer010<String> kafkaConsumer1 = new FlinkKafkaConsumer010<>("join1", new SimpleStringSchema(), properties);
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+      ///  SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
         System.out.println("============》 任务开始+++++");
         //kafkaConsumer1.setStartFromEarliest();
-        DataStreamSource<String> source1 = env.addSource(kafkaConsumer1).setParallelism(1);
+
+        DataStreamSource<String> source1 = env.socketTextStream("127.0.0.1",6666);
         source1.print();
 
-        /*SingleOutputStreamOperator<Row> stream1 = source1.map(new MapFunction<String, Row>() {
+        SingleOutputStreamOperator<info1> stream1 = source1.map(new MapFunction<String, info1>() {
             @Override
-            public Row map(String value) throws Exception {
-                Row row = null;
-                try {
+            public info1 map(String value) throws Exception {
+                info1 info2 = new info1();
                     String[] split = value.split(",");
-                    if (split.length==3){
-                    String timeStamp = split[0];
-                    String name = split[1];
-                    String score = split[2];
-                    row = new Row(3);
-                    row.setField(0, timeStamp);
-                    row.setField(1, name);
-                    row.setField(2, score);
+                    if (split.length==3) {
+                        String timeStamp = split[0];
+                        String name = split[1];
+                        String count = split[2];
 
-                    JedisPoolUtil jedisPoolUtil = JedisPoolUtil.getInstance();
-                    jedisPoolUtil.initialPool();
-                    Jedis jedis = jedisPoolUtil.getJedis();
-                    jedis.hset(score,name,timeStamp);
-                    jedisPoolUtil.closePool();
-                    jedisPoolUtil.returnResource(jedis);
+                        info2.setTimeStamp(timeStamp);
+                        info2.setItemId(name);
+                        info2.setCount(Integer.parseInt(count));
 
                     }
-                    else {
-                        System.out.println(value);
-                    }
-                    //System.out.println(row.toString());
-                } catch (NumberFormatException e) {
-                    //e.printStackTrace();
 
-                   System.out.println(value);
-                }
-                return row;
+                return info2;
             }
         }).uid("ee").name("rrr").setParallelism(1);
 
-*/
 
+        SingleOutputStreamOperator<info1> stream1AndWatermarks = stream1
+                .assignTimestampsAndWatermarks(new AssignerWithPeriodicWatermarks<info1>() {
+              long currentMaxTimestamp = 0L;
+              long maxOutOfOrderness = 3000L;
+              Watermark watermark = null;
+              //最大允许的乱序时间是10s
+              @Nullable
+              @Override
+              public Watermark getCurrentWatermark() {
+                  watermark = new Watermark(currentMaxTimestamp - maxOutOfOrderness);
+                  return watermark;
+              }
+              @Override
+              public long extractTimestamp(info1 element, long previousElementTimestamp) {
+                long timeStamp=Long.parseLong(element.getTimeStamp());
+                  currentMaxTimestamp = Math.max(timeStamp, currentMaxTimestamp);
+                  return timeStamp;
+              }
+          }
+        );
 
-
-        /*.setParallelism(1).assignTimestampsAndWatermarks(new AssignerWithPeriodicWatermarks<Row>() {
-                 long currentMaxTimestamp = 0L;
-                 long maxOutOfOrderness = 10000L;
-                 Watermark watermark = null;
-            //最大允许的乱序时间是10s
-                 @Nullable
-                 @Override
-                 public Watermark getCurrentWatermark() {
-                     watermark = new Watermark(currentMaxTimestamp - maxOutOfOrderness);
-                     return watermark;
-                 }
-                 @Override
-                 public long extractTimestamp(Row element, long previousElementTimestamp) {
-                     long timeStamp = 0;
-                     try {
-                         timeStamp = simpleDateFormat.parse(element.getField(0).toString()).getDate();
-                     } catch (ParseException e) {
-                         e.printStackTrace();
-                     }
-                     currentMaxTimestamp = Math.max(timeStamp, currentMaxTimestamp);
-                     return timeStamp;
-                 }
-             }
-        ).setParallelism(1);
-        stream1.print().setParallelism(1);
-        stream1.windowAll(TumblingEventTimeWindows.of(Time.seconds(5)))
-                .trigger(CountTrigger.of(8))
-                .apply(new AllWindowFunction<Row, String, TimeWindow>() {
-                    @Override
-                    public void apply(TimeWindow window, Iterable<Row> values, Collector<String> out) throws Exception {
-                        values.forEach(t->
-                                out.collect("排序后"+t.toString())
-                                );
-
-                    }
-                }).setParallelism(1)
-                .print();*/
-       /* stream1.keyBy(new KeySelector<Row, String>() {
+        SingleOutputStreamOperator<info1> count = stream1AndWatermarks
+                .keyBy("itemId")
+                .window(TumblingEventTimeWindows.of(Time.seconds(5)))
+                .allowedLateness(Time.seconds(2))
+                .sum("count");
+        count.map(new MapFunction<info1, Object>() {
             @Override
-            public String getKey(Row value) throws Exception {
-                return value.getField(1).toString();
+            public Object map(info1 value) throws Exception {
+                System.out.println(value.toString());
+                return " ";
             }
-        }).window(TumblingEventTimeWindows.of(Time.seconds(5)))
-              // .trigger(CountTrigger.of(5))
-                .reduce(new ReduceFunction<Row>() {
-                    @Override
-                    public Row reduce(Row value1, Row value2) throws Exception {
-                        String s1 = value1.getField(2).toString();
-                        String s2 = value2.getField(2).toString();
-                        if (Integer.parseInt(s1) < Integer.parseInt(s2)) {
-                            return value2;
-                        } else {
-                            return value1;
-                        }
-                    }
-                }).print();*/
+        });
+
         try {
             env.execute("DimensionTablejoin");
         } catch (Exception e) {
@@ -152,4 +109,55 @@ public class WindowsTest {
         }
 
     }
+
+
+    public static class info1 {
+        public String timeStamp;
+        public String itemId;
+        int count;
+
+        public info1(String timeStamp, String itemId, int count) {
+            this.timeStamp = timeStamp;
+            this.itemId = itemId;
+            this.count = count;
+        }
+
+        public info1() {
+        }
+
+        public String getTimeStamp() {
+            return timeStamp;
+        }
+
+        public void setTimeStamp(String timeStamp) {
+            this.timeStamp = timeStamp;
+        }
+
+        public String getItemId() {
+            return itemId;
+        }
+
+        public void setItemId(String itemId) {
+            this.itemId = itemId;
+        }
+
+        public int getCount() {
+            return count;
+        }
+
+        @Override
+        public String toString() {
+            return "info1{" +
+                    "timeStamp='" + timeStamp + '\'' +
+                    ", itemId='" + itemId + '\'' +
+                    ", count=" + count +
+                    '}';
+        }
+
+        public void setCount(int count) {
+            this.count = count;
+        }
+    }
+
+
 }

@@ -1,0 +1,1 @@
+{"evcsId":"10326467","chargeHeaderId":"1010101201","chargeHeaderStatus":3,"orderId":"1907043619851601","startElectricity":48.0,"endElectricity":61.0,"totalCharged":13.0,"batteryChargeVoltage":100.0,"batteryChargeCurrent":10.0,"outPutPower":10.0,"totalChargeFee":9.1000,"totalServiceFee":2.6000,"csEventTime":"2019-07-09 11:38:20"}

@@ -3,10 +3,7 @@ package sqldemo;
 
 import com.missfresh.util.GetInfo;
 import com.missfresh.util.MyRowInfo;
-import com.missfresh.util.Parameter;
-import com.missfresh.util.SqlParse;
 import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -17,26 +14,14 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchSinkFunction;
-import org.apache.flink.streaming.connectors.elasticsearch.RequestIndexer;
-import org.apache.flink.streaming.connectors.elasticsearch6.ElasticsearchSink;
 import org.apache.flink.streaming.connectors.redis.common.mapper.RedisCommand;
 import org.apache.flink.streaming.connectors.redis.common.mapper.RedisCommandDescription;
 import org.apache.flink.streaming.connectors.redis.common.mapper.RedisMapper;
 import org.apache.flink.table.api.Table;
-import org.apache.flink.table.api.TableEnvironment;
 import org.apache.flink.table.api.java.StreamTableEnvironment;
 import org.apache.flink.types.Row;
-import org.apache.http.HttpHost;
-import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.update.UpdateRequest;
-import org.elasticsearch.client.Requests;
-import org.elasticsearch.common.xcontent.XContentFactory;
 
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -45,7 +30,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2019-02-20 16:47
  */
 public class LoaclSqlTest {
-    public static void main(String[] args) throws Exception {
+  /*  public static void main(String[] args) throws Exception {
         Map<String,String> parMap = Parameter.getParm(args);
         System.out.println("===============》 flink任务开始  ==============》");
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -125,9 +110,9 @@ public class LoaclSqlTest {
     }
 
 
-    /**
+    *//**
      * 数据写入redis
-     */
+     *//*
     //指定Redis key并将flink数据类型映射到Redis数据类型
     public static final class RedisExampleMapper implements RedisMapper<Row> {
         //设置数据使用的数据结构 HashSet 并设置key的名称
@@ -135,12 +120,12 @@ public class LoaclSqlTest {
             return new RedisCommandDescription(RedisCommand.HSET, "PVData");
         }
 
-        /**
+        *//**
          * 获取 value值 value的数据是键值对
          *
          * @param data
          * @return
-         */
+         *//*
         //指定key
         public String getKeyFromData(Row data) {
             return data.getField(1).toString();
@@ -153,13 +138,13 @@ public class LoaclSqlTest {
     }
 
 
-    /**
+    *//**
      * <---  定义一个pojo类要满足一下条件  ----->
      * 1--》这类必须公开。
      * 2--》它必须有一个没有参数的公共构造函数（默认构造函数）。
      * 3--》所有字段都是公共的，或者必须通过getter和setter函数访问。对于一个名为foogetter和setter方法的字段必须命名getFoo()和setFoo()。
      * 4--》Flink必须支持字段的类型。目前，Flink使用Avro序列化任意对象（例如Date）。
-     */
+     *//*
 
     public static class info {
         public String userId;
@@ -182,6 +167,6 @@ public class LoaclSqlTest {
                     ", behavior='" + behavior + '\'' + ", itemId='" + itemId + '\'' +
                     '}';
         }
-    }
+    }*/
 
 }

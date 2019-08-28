@@ -15,7 +15,7 @@ import java.util.ArrayList;
  * @author wangzhihua
  * @date 2019-01-18 15:35
  */
-public class HBaseOutputFormat implements OutputFormat<Tuple5<Long, Long, Long, String, Long>> {
+/*public class HBaseOutputFormat implements OutputFormat<Tuple5<Long, Long, Long, String, Long>> {
     private org.apache.hadoop.conf.Configuration conf = null;
     private Connection conn = null;
     private Table table = null;
@@ -25,12 +25,12 @@ public class HBaseOutputFormat implements OutputFormat<Tuple5<Long, Long, Long, 
     }
 
 
-    @Override
+  *//*  @Override
     public void open(int taskNumber, int numTasks) throws IOException {
         HbaseUtil.setConf("10.2.40.12,10.2.40.11,10.2.40.8", "2181");
         conn = HbaseUtil.connection;
         HbaseUtil.createTable("flink_test2","info");
-    }
+    }*//*
 
     @Override
     public void writeRecord(Tuple5<Long, Long, Long, String, Long> record) throws IOException {
@@ -60,4 +60,4 @@ public class HBaseOutputFormat implements OutputFormat<Tuple5<Long, Long, Long, 
 
 
 
-}
+}*/

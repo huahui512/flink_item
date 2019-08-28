@@ -47,7 +47,7 @@ public class MysqlSource  extends RichSourceFunction<String> {
    }
     @Override
     public void cancel() {
-        isRunning=true;
+        isRunning=false;
     }
     @Override
     public void close() throws Exception {
