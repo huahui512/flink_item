@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -40,7 +41,10 @@ import java.util.UUID;
 public class StreamCubeTest {
     private final Producer<String, String> producer;
     public final static String TOPIC = "rtsc_stream_test_ods";
-    public final static String MESSAGE = "{\"current_timestamp\":\"1560321490665\",\"remote_ip\":\"10.13.16.3:60188\",\"user_id\":\"133871674\",\"business\":\"mryt\",\"platform\":\"wxapp\",\"version\":\"4.7.3\",\"device_id\":\"none\",\"device_source_id\":\"none\",\"device_model\":\"FIG-AL10\",\"device_os\":\"Android 8.0.0\",\"device_size\":\"0*0\",\"address_code\":\"0\",\"station_code\":\"-\",\"anchor_id\":\"4.7.31560309767696\",\"from_source\":\"-\",\"action\":\"-\",\"sku\":\"-\",\"module_standby\":\"-\",\"promotion_id\":\"-\",\"channel\":\"-\",\"second_channel\":\"-\",\"type\":\"-\"}";
+    SimpleDateFormat sf = new SimpleDateFormat("yyyy年MM月dd日 HH时mm分ss秒SSS毫秒");
+    Date now  = new Date();
+    String str = sf.format(now);
+    public final  String MESSAGE = "{\"current_timestamp\":\"1560321490665\",\"remote_ip\":\"10.13.16.3:60188\",\"user_id\":\"133871674\",\"business\":\"mryt\",\"platform\":\"wxapp\",\"version\":\"4.7.3\",\"device_id\":\"none\",\"device_source_id\":\"none\",\"device_model\":\"FIG-AL10\",\"device_os\":\"Android 8.0.0\",\"device_size\":\"0*0\",\"address_code\":\"0\",\"station_code\":\"-\",\"anchor_id\":\"4.7.31560309767696\",\"from_source\":\"-\",\"action\":\"-\",\"sku\":\"-\",\"module_standby\":\"-\",\"promotion_id\":\"-\",\"channel\":\"-\",\"second_channel\":\"-\",\"type\":\"-\"}";
     private StreamCubeTest(){
         Properties props = new Properties();
         props.setProperty("bootstrap.servers","10.2.40.14:9092,10.2.40.10:9092,10.2.40.15:9092");
@@ -52,6 +56,7 @@ public class StreamCubeTest {
     }
 
     void produce() throws InterruptedException {
+
         while (true) {
             producer.send(new ProducerRecord<>(TOPIC, UUID.randomUUID().toString(), MESSAGE));
             Thread.sleep(500);
